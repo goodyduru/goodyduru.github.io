@@ -12,6 +12,8 @@ This post does not cover working with trackerless torrents using [peer exchange]
 
 The client I built mainly implements the client side of the protocol and some of the server side. What this means is that it can share files if a peer requests for a file but it doesn't listen for connection. The only way a peer can communicate with this client is if this client initiates the connection.
 
+You can find the source code of my client on [Github](https://github.com/goodyduru/simpletorrent)
+
 I'll start this post by giving an overview of the Bittorrent protocol before going into details.
 
 ### The BitTorrent Protocol
@@ -107,7 +109,7 @@ Here's an example connect request message. The device is assumed to be a big-end
     magic_num = 0x41727101980 => 0000041727101980 (8 bytes)
     action = 0 => 00000000 (4 bytes)
     transaction_id = 765 => 000002FD (4 bytes)
-    // numbers are converted to hex and sent
+    // the hex values are concatenated
     message = 000004172710198000000000000002FD (16 bytes)
 ```
 
@@ -141,7 +143,7 @@ Here's an example announce request message. The device is assumed to be a big-en
     key = 0 => 00000000 (4 bytes)
     num_want = -1 => FFFFFFFF (4 bytes)
     port = 6889 => 1AE9 (2 bytes)
-    // numbers are converted to hex and sent
+    // the hex values are concatenated together
     message = 00000003DCB35E1B0000000100000337123456789ABCDEF123456789ABCDEF123456789A2D4254303030312D393438393131313136343332000000000000000000000000000776490000000000000000000000000000000000000000FFFFFFFF1AE9 (98 bytes)
 ```
 
@@ -160,6 +162,219 @@ Here's a reply message to the above request
     second peer ip&port = 4E642D3625C0 (6 bytes) => 78.100.45.54:9664
 ```
 
+A way to read and write messages like the above in C is to use the [memcpy](https://man7.org/linux/man-pages/man3/memcpy.3.html) function. Python has the [struct](https://docs.python.org/3/library/struct.html) package. PHP has the [pack](https://www.php.net/manual/en/function.pack.php) and [unpack](https://www.php.net/manual/en/function.unpack.php) for writing and reading messages respectively. Java has the [ByteBuffer](https://docs.oracle.com/javase/7/docs/api/java/nio/ByteBuffer.html) class. You can find equivalents in other languages too.  
+
 It is recommended that you read more about the tracker [UDP protocol](https://www.bittorrent.org/beps/bep_0015.html).  
 
-After the client verifies that the transaction id received is equal to the one sent, the peer list can be parsed and connections to each peer are initiated using the peer message protocol.
+After the client verifies that the transaction id received is equal to the one sent, the peer list can be parsed and connections to each peer are initiated using the peer message protocol. 
+
+### Peers
+Communication with other peers is done to each ip and port addresses received from the trackers via the TCP protocol. The protocol for this is a binary protocol so it has similar format as the one in the UDP protocol. Due to the fact that your client connects to more than one peer, these connections have to be handled by your application. Some of the options to do that in C are:
+
+* The [libevent](https://libevent.org/) library.
+* [select](https://man7.org/linux/man-pages/man2/select.2.html), [poll](https://man7.org/linux/man-pages/man2/poll.2.html) and equivalent functions.
+* Multithreaded socket functions.
+
+The socket descriptor has to be set to non-blocking when using non-multithread methods. It's very possible some peers might not immediately reject your connection so setting connecting with timeouts is important to avoid delay. Doing this in C is not so straightforward unlike [Python](https://docs.python.org/3/library/socket.html#socket.create_connection), a way to do this is to use the [select](https://stackoverflow.com/a/2597774) function.  
+
+Once 2 peers are connected, the first message that is exchanged between them is the handshake message.
+
+#### Handshake Message
+This is a required message. The peer that initiated the connected has to send this message to the accepting peer. Once this message is sent by the initiating peer, the accepting peer also replies with its own handshake message.  
+
+The structure of the message is `<pstrlen><pstr><reserved><info_hash><peer_id>`. `<pstrlen>` is always _19_, it signifies the length of `<pstr>` which is always _BitTorrent protocol_, `<reserved>` is always 0 except you want to support extensions to the protocol, `<info_hash>` is the same as the info hash that was sent to the tracker and `<peer_id>` is the peer id that was also sent to the tracker. The length of this message is 68 bytes. Here's an example.
+
+```
+    pstr_len = 19 => 13 (1 byte)
+    pstr = BitTorrent protocol => 426974546F7272656E742070726F746F636F6C (19 bytes)
+    reserved = 0 => 0000000000000000 (8 bytes)
+    info_hash = 123456789ABCDEF123456789ABCDEF123456789A //already in hex (20 bytes)
+    peer_id = -BT0001-948911116432 => 2D4254303030312D393438393131313136343332 (20 bytes)
+
+    // The hex values are concatenated
+    message = 13426974546F7272656E742070726F746F636F6C0000000000000000123456789ABCDEF123456789ABCDEF123456789A2D4254303030312D393438393131313136343332 (68 bytes)
+```
+
+The only difference between the message sent and message received should be the peer_id. All other values should be the same. It is recommended the info_hash in the received message is checked to avoid issues. 
+
+Note that the reply to the sent handshake message may also include additional messages like the bitfield/choke/have message.
+
+You can read more details about the handshake message [here](https://wiki.theory.org/index.php/BitTorrentSpecification#Handshake).
+
+#### Messages
+This is the core of the BitTorrent protocol. The different types of messages are the keep-alive, choke, unchoke, interested, uninterested, have, bitfield, request, piece, cancel and port messages. You can see details [here](https://wiki.theory.org/index.php/BitTorrentSpecification#Messages).
+
+The messages all begin with the message length which has a size of 4 bytes. Messages except the _keep-alive_ message also include the id (size = 1 byte), this id is used to identify the type of message that is send and received. The other parts of the message (for some message type) are specific to the message type.
+
+There's a possibility that a client might receive more than one message type in one segment. It is recommended that the message's _message length_ value is used when reading the segment to demarcate the different types. It is also possible that less than the full message might appear in the segment. Your implementation should have a way of handling this. For example, you could use an internal buffer when reading from the socket. 
+
+Some of the important messages are covered below
+
+##### Choke/Unchoke message
+These messages are used to denote if a peer wants to serve files to another peer. A _choke_ message is sent by a peer to inform another peer that it doesn't want to serve file to the other peer. The structure of the message is shown below
+
+```
+    length = 1 => 00000001 (4 bytes)
+    id = 0 => 00 (1 byte)
+    
+    The hex values are concatenated together
+    message = 0000000100
+```
+
+On receiving this message, it is recommended that the receiver refrains from requesting pieces from the sender until an _unchoke_ message is sent. The _unchoke_ message gives the receiver license to request pieces from the sender. The structure of the message is shown below
+
+```
+    length = 1 => 00000001 (4 bytes)
+    id = 1 => 01 (1 byte)
+    
+    The hex values are concatenated together
+    message = 0000000101
+```
+
+A _choke_ message can be sent at anytime so your implementation has to look out for it. A _choke_ message can also be sent alongside the _handshake_ message by the accepting peer to prevent an immediate request from the initiating peer.
+
+##### Interested/Uninterested message
+These messages are used to denote if a peer wants to receive files from another peer. An _interested_ message is sent by a peer to inform the receiver that it wants to receive a file from the it. On receiving the message, the recipient could choose to send a _choke_ message to prevent the sender from requesting for pieces from it. It could also send an _unchoke_ message to a choked sender. This is entirely based on the choking algorithm that the peer adopts. Note that the _interested_ message doesn't require a reply.  
+
+The structure of an _interested_ message is shown below
+
+```
+    length = 1 => 00000001 (4 bytes)
+    id = 2 => 02 (1 byte)
+    
+    The hex values are concatenated together
+    message = 0000000102
+```
+
+The _uninterested_ message is sent by a peer to another peer if the receiver doesn't have the pieces the sender wants or its upload speed is too low for the sender. The recipient could choose to choke the sender or ignore the message. 
+
+The structure of an _uninterested_ message is shown below
+
+```
+    length = 1 => 00000001 (4 bytes)
+    id = 3 => 03 (1 byte)
+    
+    The hex values are concatenated together
+    message = 0000000103
+```
+
+##### Have/Bitfield message
+A peer has to signal the pieces it has to another peer. This is usually done in the reply to a handshake message (appended to the reply handshake message). They are 2 message types that can do this. One type could be used or a combination of both.  
+
+The _have_ message is sent by a peer to signal that it has a piece. It's very possible for a peer to send several of them to the other peer. For example, if a file has 16 pieces and a peer has 14 of them, the peer could send 14 _have_ messages to the other peer each containing the different piece index. It is expected that a client has a way to keep record of pieces that each peers it's connected to has.  
+
+The structure of a _have_ message is shown below
+
+```
+    length = 5 => 00000005 (4 bytes)
+    id = 4 => 04 (1 byte)
+    piece_index = 10 => 0000000A (4 bytes)
+    
+    The hex values are concatenated together
+    message = 00000001040000000A
+```
+
+ The piece_index is the index of the piece denoted in the message. It is zero-based i.e first piece will be referenced as 0. 
+
+Another way that a peer can signal the pieces it has is to send them all as a _bitfield_ message. A data structure that a peer can use to store the pieces it has is as a **bitarray**. This is an array that just stores bits. The length of the array is the number of pieces in the shared file(s). Each item in the array is either 1 or 0 if the piece is present or absent respectively. From the example above, the peer having 14 pieces might not have piece 10 and 13 so the bitarray would be '1111111110110111'. C has no native structure for bitarrays so an array of characters can be used where each character represents 8 pieces, this means the array for this would have _number of pieces/8_ items. Note that this length is rounded up to the nearest integer. Any spare bits at the end of the last character is set to 0. 
+
+The structure of a _bitfield_ message is shown below
+
+```
+    length = 3 => 00000003 (4 bytes)
+    id = 5 => 05 (1 byte)
+    bitfield = 1111111110110111 => FFB7 (2 bytes)
+    
+    The hex values are concatenated together
+    message = 0000000105FFB7
+```
+
+A peer can send a _bitfield_ or _have_ message once it has downloaded a complete piece to all the connected peers if it wants to share files.
+
+##### Request message
+The _request_ message is sent by a peer to download a piece from another peer. A piece is usually too large to download at a single time so it's advisable that the pieces are also divided into sub-pieces or blocks. According to the [spec](https://wiki.theory.org/index.php/BitTorrentSpecification#request:_.3Clen.3D0013.3E.3Cid.3D6.3E.3Cindex.3E.3Cbegin.3E.3Clength.3E), the recommended size should be set to 2^14 bytes (16 KB). If the piece is not evenly divisible by the block size, the last block would have a smaller size. A block should also have an offset attribute, this attribute signifies where it is located within the piece.
+
+When requesting a block from another peer, it is recommended that the peer has the piece containing the block. The order of downloading a block is up to the client. It could be in order, random or any fancy algo out there. During downloads, it is recommended that a check is made for outstanding downloads that take more than a set time. These delayed blocks should be re-requested to speed up the entire process.
+
+The structure of the _request_ message for a block in piece index 13 (zero-based) is shown
+
+```
+    length = 13 => 0000000D (4 bytes)
+    id = 6 => 06 (1 byte)
+    index = 13 => 0000000D (4 bytes)
+    begin = 49152 => 0000C000 ( 4 bytes )
+    block_length = 16384 => 00004000 (4 bytes)
+    
+    The hex values are concatenated together
+    message = 0000000D060000000D0000C00000004000
+```
+
+The **index** is the index of the piece that contains the block. The **begin** value signifies the offset in bytes that the requested block is located within the piece i.e the block starts from the 49152th byte. From the structure above, the block is the 4th block in the piece. The **block_length** is the size of the block requested in bytes.
+
+##### Piece message
+This message is a response to the _request_ message. It contains the block data whose length is equal to the length requested. 
+
+The structure of the _piece_ message for a block in piece index 13 (zero-based) is shown
+
+```
+    length = 9 => 00000009 (4 bytes)
+    id = 7 => 07 (1 byte)
+    index = 13 => 0000000D (4 bytes)
+    begin = 49152 => 0000C000 ( 4 bytes )
+    block = ADB40212..... (16384 bytes)
+    
+    The hex values are concatenated together
+    message = 00000009070000000D0000C000ADB40212.....
+```
+
+The **index** is the index of the piece that contains the block. The **begin** is the offset in bytes that the requested block is located within the piece. In the example, the block starts from the 49152th byte. The **block** is the block data itself, the pseudocode shows the truncated form. The block data in the example above is 16KiB in size.  
+
+When all the blocks of a piece has been downloaded and merged, a hash of the piece should be checked against the piece hash contained within the **pieces** element of the info dictionary of the torrent metafile. If the hash does not match, the piece should be discarded and its blocks should be requested for again.
+
+##### Cancel/Port message
+The _cancel_ message is mainly sent if the peer executes the [End Game](https://wiki.theory.org/index.php/BitTorrentSpecification#End_Game) algorithm. The message is sent as a form of politeness and to save bandwidth. I didn't implement the algorithm so there's no need for my client to send the  _cancel_ message.  
+
+The structure of the message is the same as that of the _request_ message.
+
+```
+    length = 13 => 0000000D (4 bytes)
+    id = 8 => 08 (1 byte)
+    index = 13 => 0000000D (4 bytes)
+    begin = 49152 => 0000C000 ( 4 bytes )
+    block_length = 16384 => 00004000 (4 bytes)
+    
+    The hex values are concatenated together
+    message = 0000000D080000000D0000C00000004000
+```
+
+The only difference between the _cancel_ message and the _request_ message is the id i.e 8 for the _cancel_ message type against 6 for the _request_ message.  
+
+The _port_ message is only needed for clients that implements a DHT tracker. Like the _cancel_ message, I didn't implement DHT so there's no need for miy client to send the _port_ message.
+
+It is sent to the receivers to notify them of the port the sender DHT's node is listening on. The structure of the message is shown here
+
+```
+    length = 3 => 00000003 (4 bytes)
+    id = 9 => 09 (1 byte)
+    port = 48879 => BEEF (2 bytes)
+    
+    The hex values are concatenated together
+    message = 0000000109BEEF
+```
+
+### Writing a File
+When a piece is verified, it is still in the RAM. Keeping all the pieces in memory can use up a lot of memory. For example, a 4gb file would use up ~4gb of memory if the pieces are all kept in memory. It is recommended that once a piece is verified, it should be written to a file except if the peer is currently sharing that piece.
+
+If the torrent contains only one file, writing a piece to the file is a trivial matter of using the piece index to calculate the offset within the file and writing the piece from that offset. A lot of programming languages provide the mechanism for that.  
+
+In the case of a torrent containing more than one file, it can be tricky. It's tricky because a piece might belong to more than one file and a file might contain more than one piece. If all the pieces are merged, they will be written to the files according to how the file names are arranged in the **files** list of the info dictionary. You should use the **length** element of each file to guide you on how much data has to be written to that file.
+
+Your piece structure implementation should account for the files that each piece is written to along with the offset and length within each file.  
+
+### Resources
+* The [official](http://bittorrent.org/beps/bep_0003.html) and [unofficial](https://wiki.theory.org/index.php/BitTorrentSpecification) specifications are a must-read.
+* Some of the BEPs found on this [page](http://bittorrent.org/beps/bep_0000.html) should also be read depending on your goals.
+* Part [one](https://www.kristenwidman.com/blog/33/how-to-write-a-bittorrent-client-part-1) and [two](http://www.kristenwidman.com/blog/71/how-to-write-a-bittorrent-client-part-2/) of Kristen Widman's article on writing a bittorrent client are great to read too.
+* My implementation in C can be found on [Github](https://github.com/goodyduru/simpletorrent).
+
+Happy coding!
