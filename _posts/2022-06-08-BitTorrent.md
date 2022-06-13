@@ -41,36 +41,41 @@ Some of the important keys in the torrent dictionary are listed below:
 * **announce**: This contains the url of a single tracker.
 * **announce-list**: This contains a list of tracker urls.
 * **info**: This is a dictionary that contains file-related details. A hash of the bencoded value of this key (including the _d_ and _e_) is used by both the trackers and peers to identify the torrent file. Some of the details are: 
-    * _pieces_: A long binary string consisting of the concatenation of the SHA-1 hash of each piece. Each hash is 20 bytes long so this makes the length of this string a multiple of 20. We can divide this string length by 20 to get the exact number of pieces to download.
+    * _pieces_: A long binary string consisting of the concatenation of the SHA-1 hash of each piece. Each hash is 20 bytes long, so this makes the length of this string a multiple of 20. We can divide this string length by 20 to get the exact number of pieces to download.
     * _piece length_: the size of each piece in bytes. The size of the last piece might not be as large as this value.
     * _name_: The name of the file/directory to download.
     * _files_: This key only appears when more than one file is downloaded. It's a dictionary that contains the _path_ and _length_ of each file.
     * _length_: This key only appears **directly under the info dictionary** when only one file is downloaded. It contains the size of the file in bytes. The value of this gives the accurate file size.  
     When more than one file is downloaded, this key appears under the **files** key defined above. In this situation, a sum of these values gives the total size of the files.  
-    The file(s) size must be calculated accurately because this helps in correctly inferring the last piece's size. The modulo function can calculate the last piece's size if the total file size is not divisible by the **piece length**.
+    The file(s) size must be accurately calculated because this helps in correctly inferring the last piece's size. The modulo function can calculate the final piece's size if the total file size is not divisible by the **piece length**.
 
 Note that these aren't all the keys in the torrent file. You can read about more torrent keys and details [here](https://wiki.theory.org/index.php/BitTorrentSpecification#Metainfo_File_Structure).
 
 Communication to the urls extracted from the **announce** and (maybe) **announce-list** elements are made to get the peers. The trackers' communication flow is explained in the next section.
 
 ### Tracker
-Communication with the tracker is necessary in order to get the peers. The trackers can be communicated with using either the UDP or HTTP/HTTPS protocol depending on the url scheme. UDP is used for trackers whose urls begin with _udp://_ while HTTP/HTTPS is used for trackers whose urls begin with _http://_ or _https://_.   
+Communication with the tracker is necessary to get the peers. The trackers can be communicated with by either the UDP or HTTP/HTTPS protocol based on the url scheme. UDP is used for communication with trackers whose urls begin with _udp://_, while HTTP/HTTPS is used for communication with trackers whose urls start with _http://_ or _https://_.   
 
-It's very possible that some of the trackers will produce an error when connected to so getting an error from them doesn't mean that your protocol implementation is wrong. The error might be due to a myriad of reasons that are beyond your control. This is why connecting to more of them increases your chances of getting peers.  
+Some of the trackers may produce an error on connection, so getting an error from them doesn't mean that your protocol implementation is wrong. The error might be due to a myriad of reasons that are beyond your control. Connecting to more of them increases your chances of getting peers.  
 
-Previously, it was http(s) that was the only protocol but due to the demand on trackers by peers and the overhead introduced by the http(s) protocol, udp was introduced. Both protocols will be covered here.
+Previously, it was http(s) that was the only communication protocol, but because of the demand on trackers by peers and the overhead introduced by the http(s) protocol, udp was introduced. Both protocols will be covered here.  
 
 #### HTTP(s) Protocol
-We won't cover https here since its only difference from http is the use of certificates. 
+We won't cover https here since its only difference from http is that it uses certificates. 
 
-A GET request is sent to the tracker where the url is either the **announce** value or one of the **announce-list** values. I wrote a very simple implementation of this using the sockets library but you're free to use any http library of your choice when building your client. Some values are added as parameters to the url. Values that need to be encoded have to be encoded using the [percent encoded](https://en.wikipedia.org/wiki/Percent-encoding) method. Some of the important parameters are:
-* info_hash: This is the urlencoded SHA-1 hash of the **info** key value in the bencoded torrent dictionary. The hash is 20 bytes in length. The **info** key value has to include the _d_ and _e_ characters used to delimit the start and end of the dictionary.  
-It is important that the hash has to be correct because it is used by the tracker to determine the torrent file. If it's incorrect, the tracker will either produce an error or worse, give you a different set of peers.  
+A GET request is sent to the tracker where the url is either the **announce** value or one of the **announce-list** values. I wrote a simple implementation of this using the sockets library, but you're free to use any http library of your choice when building your client. Some values are added as parameters to the url. Parameters that need to be encoded have to be encoded using the [percent-encoded](https://en.wikipedia.org/wiki/Percent-encoding) method. Some of the more important parameters are:
+
+* info_hash: This is the urlencoded SHA-1 hash of the **info** key value in the bencoded torrent dictionary. It is 20 bytes in length. The **info** key value must include the _d_ and _e_ characters used to delimit the start and end of the dictionary.  
+The hash has to be correct because the tracker uses it to determine the torrent file. If this is incorrect, the tracker will either produce an error or give you a different set of peers.  
 The hash is a binary string and therefore has to be urlencoded.
-* peer_id: This is a unique id that your client generates to identify your device. The length has to be exactly 20 characters long. The characters can even be binary. Different BitTorrent clients have [different conventions](https://wiki.theory.org/index.php/BitTorrentSpecification#peer_id) for generating peer_id. This parameter value has to be urlencoded.
-* port: The port your client is listening on. It's usually set to between 6881-6889. If your device is behind a NAT, you might need to use TURN/STUN methods to determine what port is set in the NAT before setting this parameter. If you choose to be solely a leecher, you can set this to 0.
-* ip: The ip address of your client. If you choose to be solely a leecher, you can set this to 0. This is optional because most trackers ignore this as they can determine this from the ip address your HTTP request is coming from. 
-* compact: This determines the format of the peer string in the tracker's response. Setting this to 1 ensures that the peers list is returned as a string with each peer being 6 bytes long. This means that the number of peers received is a multiple of 6. The ip address and port of each peer are 4 bytes long and 2 bytes long respectively. This is surprising because we know that ipv4 addresses in dotted format are a minimum of 7 bytes long (0.0.0.0). Well, they can also be represented as a  [decimal number](https://en.wikipedia.org/wiki/IPv4#Addressing). This number is stored in big-endian notation. The number formatted version of the ipv4 is 4 bytes. The port is 2 bytes because every port can be represented using 2 8-bit characters since the range is 0-65535. Setting this parameter to 0 ensures the peers list is returned as a bencoded dictionary.Many trackers prefer requests with this set to 1 in order to save bandwidth.  
+
+* peer_id: This is a unique id your client generates to identify your device. The length has to be exactly 20 characters long. The characters can even be binary. Different BitTorrent clients have [different conventions](https://wiki.theory.org/index.php/BitTorrentSpecification#peer_id) for generating peer_id. This parameter value has to be urlencoded.
+
+* port: The port on which your client is listening. It is typically set to between 6881-6889. If your device is behind a NAT, you might need to use TURN/STUN methods to determine what your port is in the NAT before setting this parameter. If you choose to be solely a leecher, you can set this to 0.
+
+* ip: The ip address of your client. If you choose to be solely a leecher, you can set this to 0. It is optional because most trackers ignore this as they can determine this from the ip address your HTTP request is coming on.
+
+* compact: This determines the format of the peer string in the tracker's response. Setting this to 1 ensures that the peers' list is formatted as a string with each peer being 6 bytes long, meaning that the number of peers received is a multiple of 6. The ip address and port of a peer are 4 bytes and 2 bytes long respectively. This is surprising because we know that ipv4 addresses in dotted format are a minimum of 7 bytes long (0.0.0.0). Well, they can also be formatted as a [decimal number](https://en.wikipedia.org/wiki/IPv4#Addressing)(big-endian notation). The number formatted version of the ipv4 is 4 bytes. The port is 2 bytes because every port can be represented using two 8-bit characters since the range is 0-65535. Setting this parameter to 0 ensures the peers' list is formatted as a bencoded dictionary. Many trackers prefer requests with this parameter set to 1 to save bandwidth.  
 
 Here's an hypothetical request for a tracker whose url is http://opentracker.bittorrent.com/announce:7456
 
@@ -80,11 +85,11 @@ Here's an hypothetical request for a tracker whose url is http://opentracker.bit
 
 ```
 
-If the info hash is correct and the tracker has some peers connected to it, the response will be returned as a bencoded dictionary. Some of the keys in the dictionary are:
-* interval: The interval in seconds that the client should wait before sending regular requests to the tracker. The purpose of this interval is for the client to update their peer list. During the course of downloading the file, there is a very high likelihood that the number of peers that the client is downloading from will reduce due to peers disconnecting (it's also possible that the number of peers can drop to zero which is bad). This will affect the download speed as there is a positive correlation between the number of peers and the download speed. To prevent this, it's good for a client to regularly get new peers list from the tracker. In order to prevent clients from sending requests too frequently, trackers send this value.
-* complete: Number of peers with the entire file i.e seeders.
-* incomplete: Number of peers with incomplete file i.e leechers.
-* peers: This contains a list of peers along with their peer id (if **compact** is set to 0), ip address (dotted if **compact** is set to 0 or decimal if set to 1) and port. This will be in a list of dictionary form if **compact** is set to 0 or just a binary string if **compact** is set to 1.
+If the info hash is correct and the tracker has some peers connected to it, the response will be in a bencoded dictionary format. Some of the keys in the dictionary are:
+* interval: The time in seconds the client should wait before sending regular requests to the tracker. The purpose of this interval is for the client to update their peer list. When downloading the file, there is a high likelihood that the number of peers the client is downloading from will reduce due to peers disconnecting (it's also possible that the number of peers can drop to 0 ending downloads). Download speed will be affected as there is a positive correlation between the number of peers and the download speed. The way to prevent this is for the client to get a new peers list from the tracker at regular intervals. To prevent clients from sending requests too frequently, trackers send this value.
+* complete: Number of peers with the entire file(s), also known as seeders.
+* incomplete: Number of peers with the incomplete file(s), also known as leechers.
+* peers: This contains a list of peers along with their peer id (if **compact** is set to 0), ip address (dotted if **compact** is set to 0 or decimal if set to 1), and port. They will be in a list of dictionary format if **compact** is set to 0 or just a binary string if **compact** is set to 1.
 
 Here's an hypothetical reply for the request sent above
 
@@ -92,19 +97,21 @@ Here's an hypothetical reply for the request sent above
     d8:completei1e10:downloadedi0e10:incompletei1e8:intervali2988e12:min intervali1494e5:peers12:6@]-N+Nd-6%À
 ```
 
-The peers in the reply translate to 54.64.93.45:20011 and 78.100.45.54:9664.
+The peers in the reply translate to 54.64.93.45:20011 and 78.100.45.54:9664.  
 
-More explanation about tracker HTTP protocol can be read in the [spec](https://wiki.theory.org/index.php/BitTorrentSpecification#Tracker_HTTP.2FHTTPS_Protocol).  
+You can read the [spec](https://wiki.theory.org/index.php/BitTorrentSpecification#Tracker_HTTP.2FHTTPS_Protocol) for more information about the tracker HTTP protocol.
 
 #### UDP Protocol
-Due to the overhead introduced by the http protocol, a udp version was introduced. Unlike the http protocol that is text-based, this is binary-based. Because of this, numbers sent and received to and from the trackers have to be in network byte order a.k.a big-endian. Some devices are little endian e.g Intel x86 machines while some are big endian e.g ARM devices. It is a good practice to use functions that can convert between endianness when sending to and receiving from the trackers. In C, the [htonl, htons, ntohl, ntohs](https://linux.die.net/man/3/htonl) functions are used. In [Python](https://docs.python.org/3/library/struct.html#struct.pack) and [PHP](https://www.php.net/manual/en/function.pack.php), the pack and unpack functions are used.  
 
-The udp protocol is an unreliable protocol so a retry with timeout flow has to be implemented.  
-Unlike the http protocol that only involves one request-response cycle, the udp protocol involves two cycles. This is to avoid UDP spoofing. The first of these two is called the **connect** cycle while the second is called the **announce** cycle. Both will be covered in this subsection.  
+Due to the overhead introduced by the http protocol, a udp version of the protocol was introduced. Unlike the text-based http protocol, this is binary-based. Because of this, numbers sent and received to and from the trackers have to be in network byte order notation referred to as big-endian. Some devices are little-endian (Intel x86 machines) while some are big-endian (Sparc devices). Functions that convert between endianness should be used when communicating with the trackers. In C, [htonl, htons, ntohl, and ntohs](https://linux.die.net/man/3/htonl) functions are used. In [Python](https://docs.python.org/3/library/struct.html#struct.pack) and [PHP](https://www.php.net/manual/en/function.pack.php), the pack and unpack functions are used.  
 
-The connect cycle is used to get the connection id that will be used for the announce cycle. The connection id is a time-limited value that has to be sent in the announce request. This id is used by the tracker to ensure that the announce request is coming from a connected client. The connect request contains a **magic constant** (0x41727101980) which is 8 bytes, a 4 bytes **action** value (set to 0) and a 4 bytes **transaction id** (random number generated by the client). These makes the total request size 16 bytes. These numbers have to be in big endian format. On receiving this request, the tracker responds with a 4 bytes **action** value (0), the 4 bytes **transaction id** that was sent by the client and an 8 bytes **connection id** making it a total of 16 bytes for the size of the response payload. These numbers are also in big endian format. The **transaction id** is verified by the client to make sure it's equal to the one sent in the request, this ensures that the client is receiving its own response and not that of another client.
+The udp protocol is unreliable, so a retry with timeout flow needs to be implemented.  
 
-Here's an example connect request message. The device is assumed to be a big-endian one. The parameters are shown along with their hex equivalent. Note that each pair of hexadecimal values make one byte i.e a byte is between 00-FF.
+Unlike the http protocol, which only involves one request-response cycle, the udp protocol involves two cycles. This is to avoid UDP spoofing. The first of these two is called the _connect_ cycle, while the second is called the _announce_ cycle. Both will be covered in this subsection.  
+
+The connect cycle is used to get the connection id which will be used in the announce cycle. The connection id is a time-limited value that is required in the announce request. This value is used by the tracker to ensure that the announce request is coming from a connected client. The connect request contains a **magic constant** (0x41727101980) which is 8 bytes, a 4 bytes **action** value (set to 0), and a 4 bytes **transaction id** (random number generated by the client). This makes the total request size 16 bytes. These numbers have to be in big-endian format. On receiving this request, the tracker responds with a 4 bytes **action** value (0), the 4 bytes **transaction id** that was sent by the client, and an 8 bytes **connection id** making it a total of 16 bytes for the size of the response payload. These numbers are also in big-endian format. The **transaction id** is verified by the client to ensure it's equal to the one sent in the request, this ensures that the client is receiving its own response and not that of another client.  
+
+Here's an example connect request message. The device is assumed to be a big-endian one. The parameters are shown here, including their hex equivalent. Note that each pair of hexadecimal values make one byte i.e a byte is between 00-FF.  
 
 ```
     magic_num = 0x41727101980 => 0000041727101980 (8 bytes)
@@ -125,9 +132,9 @@ Here's a reply message from the tracker.
     connection_id = 00000003DCB35E1B (8 bytes) => 16587644443
 ```
 
-After verifying the transaction id, the client can then initiate the **announce** cycle.  
+After verifying the transaction id, the client can initiate the _announce_ cycle.  
 
-The announce cycle is where the client gets the list of peers from the tracker. The request includes the **connection id** sent by the tracker in the **connect** cycle, an **action** value (set to 1), **transaction id** and the parameters that are stated in the HTTP protocol. The **compact** parameter is not set since the udp protocol is a binary protocol anyway so all peers list received is in binary (akin to setting compact to 1). The response sent by the trackers include the **action** value (set to 1), the **transaction id** sent by the client and the values defined in the http protocol explanation above. Please note that all the numbers sent and received in this cycle are also in big-endian format.  
+The announce cycle is where the client gets the list of peers from the tracker. The request includes the **connection id** sent by the tracker in the _connect_ cycle, an **action** value (set to 1), a **transaction id**, and the parameters that are stated in the HTTP protocol. The **compact** parameter is not set since the udp protocol is a binary protocol anyway, so all peers list received is in binary format (akin to setting compact to 1). The response sent by the trackers includes the **action** value (set to 1), the **transaction id** sent by the client, and the values defined in the http protocol explanation above. Please note that all the numbers sent and received in this cycle are also in big-endian format.  
 
 Here's an example announce request message. The device is assumed to be a big-endian one
 ```
@@ -163,11 +170,11 @@ Here's a reply message to the above request
     second peer ip&port = 4E642D3625C0 (6 bytes) => 78.100.45.54:9664
 ```
 
-A way to read and write messages like the above in C is to use the [memcpy](https://man7.org/linux/man-pages/man3/memcpy.3.html) function. Python has the [struct](https://docs.python.org/3/library/struct.html) package. PHP has the [pack](https://www.php.net/manual/en/function.pack.php) and [unpack](https://www.php.net/manual/en/function.unpack.php) for writing and reading messages respectively. Java has the [ByteBuffer](https://docs.oracle.com/javase/7/docs/api/java/nio/ByteBuffer.html) class. You can find equivalents in other languages too.  
+A way to read and write messages like the above in C is to use the [memcpy](https://man7.org/linux/man-pages/man3/memcpy.3.html) function. Python has the [struct](https://docs.python.org/3/library/struct.html)  package. PHP has the [pack](https://www.php.net/manual/en/function.pack.php) and [unpack](https://www.php.net/manual/en/function.unpack.php) functions for writing and reading messages respectively. Java has the [ByteBuffer](https://docs.oracle.com/javase/7/docs/api/java/nio/ByteBuffer.html) class. You can find equivalents in other languages too.  
 
-It is recommended that you read more about the tracker [UDP protocol](https://www.bittorrent.org/beps/bep_0015.html).  
+It is recommended that you read more about the tracker UDP protocol.  
 
-After the client verifies that the transaction id received is equal to the one sent, the peer list can be parsed and connections to each peer are initiated using the peer message protocol. 
+After the client verifies that the transaction id received is equal to the one sent, the peer list can be parsed and connections to each peer are initiated using the peer message protocol.
 
 ### Peers
 Communication with other peers is done to each ip and port addresses received from the trackers via the TCP protocol. The protocol for this is a binary protocol so it has similar format as the one in the UDP protocol. Due to the fact that your client connects to more than one peer, these connections have to be handled by your application. Some of the options to do that in C are:
