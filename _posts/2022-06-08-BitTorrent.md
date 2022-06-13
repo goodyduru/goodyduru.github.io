@@ -27,30 +27,30 @@ Let's say you want to download David Copperfield by Charles Dickens using the Bi
 BitTorrent is indeed a peer-to-peer protocol but there's a measure of centralization in it. BitTorrent now supports true decentralization by using DHT but this won't be covered here.  
 By the way, I have noticed that most working decentralized protocol usually incorporates a centralized method for locating other devices before switching to the main protocol for communication kind of like the way the internet all use the [13 root name server addresses](https://en.wikipedia.org/wiki/Root_name_server) for DNS lookup before the main communication starts.  
 
-* A peer is a device like yours which makes you a peer. There are 2 types of peers though they aren't mutually exclusive. The peer who downloads is a **leecher** while the one who uploads is a **seeder**. A peer can be both. We download pieces of the file from the seeders. A piece is a segment of the file. The file pieces are verified and inserted into the file in their correct position. Once all the file pieces have been received, the download is complete. If you remain in the network, you stop being a leecher and fully become a seeder.  
+* A peer is a device like yours which makes you a peer. There are two types of peers though they aren't mutually exclusive. The peer who downloads is a **leecher** while the one who uploads is a **seeder**. A peer can be both. We download pieces of the file from the seeders. A piece is a segment of the file. The file pieces are verified and inserted into the file in their correct position. Once all the file pieces have been received, the download is complete. If you remain in the network, you stop being a leecher and fully become a seeder.  
 The protocol performs better when there are more seeders so mechanisms are in place to encourage more seeder-like behavior. I won't cover these mechanisms. The client I built encourages leeching so your download speed could be slower than if you use the popular BitTorrent clients.
 
-This concludes the overview. The next section covers technical details about the torrent file.
+Here concludes the overview. The next section covers technical details about the torrent file.
 
 ### The Torrent File
-The torrent file is a giant dictionary that contains information on how to download the file. This dictionary is encoded using the bencode format.  
+A torrent file is a giant dictionary that contains information on how to download the file. This dictionary is encoded using the bencode format.  
 
-The bencode encoding transforms dictionaries, lists, strings and integers into a giant string. Each datatype has their own format. For example, the torrent file starts with _'d'_ denoting that it's a dictionary. More details about the bencode format [here](http://bittorrent.org/beps/bep_0003.html#bencoding) and [here](https://wiki.theory.org/index.php/BitTorrentSpecification#Bencoding). Note that dictionaries can contain dictionaries too.
+The bencode encoding transforms dictionaries, lists, strings, and integers into a giant string. Each data type has its format. For example, the torrent file starts with _'d'_ denoting that it's a dictionary. More details about the bencode format are [here](http://bittorrent.org/beps/bep_0003.html#bencoding) and [here](https://wiki.theory.org/index.php/BitTorrentSpecification#Bencoding). Note that dictionaries can contain dictionaries too.  
 
 Some of the important keys in the torrent dictionary are listed below:
-* announce: This contains the url of a single tracker.
-* announce-list: This contains a list of tracker urls.
-* info: This is a dictionary that contains file related details. A hash of the bencoded value of this key (including the _d_ and _e_) is used by both the trackers and peers to identify the torrent file.  Some of the details are: 
-    * pieces: A long binary string consisting of the concatenation of the SHA-1 hash of each piece. Each hash is 20 bytes long so this makes the length of this string a multiple of 20. We can divide this string length by 20 to get the exact number of pieces to download.
-    * piece length: The size of each piece in bytes. It's possible that the last piece might not be as large as this value so this value multiplied by the number of pieces might not be the accurate size of the file(s).
-    * name: The name of file/directory to download.
-    * files: This key only appears in when more than one file is being downloaded. It's a dictionary that contains the _path_ and _length_ of each file.
-    * length: This key only appears **directly under the info dictionary** when only one file is being downloaded. It contains the size of the file in bytes. The value of this gives the accurate size of the file. When more than one file is downloaded, this key appears under the **files** key which is defined above. In this situation, a sum of these values gives the total size of the files.  
-    It is important that an accurate size of the file(s) is calculated because this makes the accurate size of the last piece to be inferred. This can be easily calculated by using the modulo function if the total size is not divisible by the **piece length**.
+* **announce**: This contains the url of a single tracker.
+* **announce-list**: This contains a list of tracker urls.
+* **info**: This is a dictionary that contains file-related details. A hash of the bencoded value of this key (including the _d_ and _e_) is used by both the trackers and peers to identify the torrent file. Some of the details are: 
+    * _pieces_: A long binary string consisting of the concatenation of the SHA-1 hash of each piece. Each hash is 20 bytes long so this makes the length of this string a multiple of 20. We can divide this string length by 20 to get the exact number of pieces to download.
+    * _piece length_: he size of each piece in bytes. The size of the last piece might not be as large as this value.
+    * _name_: The name of the file/directory to download.
+    * _files_: This key only appears when more than one file is downloaded. It's a dictionary that contains the _path_ and _length_ of each file.
+    * _length_: This key only appears **directly under the info dictionary** when only one file is downloaded. It contains the size of the file in bytes. The value of this gives the accurate size of the file. When more than one file is downloaded, this key appears under the **files** key which is defined above. In this situation, a sum of these values gives the total size of the files.  
+    An accurate size of the file(s) must be calculated because this makes the size of the last piece correctly inferred. The modulo function can calculate the last piece's size if the total file size is not divisible by the **piece length**.
 
 Note that these aren't all the keys in the torrent file. You can read about more torrent keys and details [here](https://wiki.theory.org/index.php/BitTorrentSpecification#Metainfo_File_Structure).
 
-The urls in the **announce** and (maybe) **announce-list** are extracted and connected to in order to get the peers. The trackers' communication flow is explained in the next section.
+Communication to the urls extracted from the **announce** and (maybe) **announce-list** elements are made to get the peers. The trackers' communication flow is explained in the next section.
 
 ### Tracker
 Communication with the tracker is necessary in order to get the peers. The trackers can be communicated with using either the UDP or HTTP/HTTPS protocol depending on the url scheme. UDP is used for trackers whose urls begin with _udp://_ while HTTP/HTTPS is used for trackers whose urls begin with _http://_ or _https://_.   
