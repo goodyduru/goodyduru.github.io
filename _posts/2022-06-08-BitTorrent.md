@@ -10,25 +10,25 @@ This post contains all I learnt about building a BitTorrent Client with C. It's 
 
 This post does not cover working with trackerless torrents using [peer exchange](https://www.bittorrent.org/beps/bep_0011.html) and [Distributed Hash Table protocol](https://www.bittorrent.org/beps/bep_0005.html). It only covers the original protocol which must involve a tracker. 
 
-The client I built mainly implements the client side of the protocol and some of the server side. What this means is that it can share files if a peer requests for a file but it doesn't listen for connection. The only way a peer can communicate with this client is if this client initiates the connection.
+The client I built mainly implements the client side of the protocol and some of the server-side. What this means is that it can share files if a peer requests for a file but it doesn't listen for a connection. The only way a peer can communicate with this client is if this client initiates the connection.
 
 You can find the source code of my client on [Github](https://github.com/goodyduru/simpletorrent)
 
 I'll start this post by giving an overview of the Bittorrent protocol before going into details.
 
 ### The BitTorrent Protocol
-The BitTorrent protocol is a peer to peer protocol that's mainly used for sharing files. What this means is that a peer can act as a client and a server in sharing a file. There is no central server that all clients connect to in order to download the files. In BitTorrent land, all clients can be servers and all servers are clients. 
+The BitTorrent protocol is a peer-to-peer protocol that's mainly used for sharing files. What this means is that a peer can act as a client and a server in sharing a file. There is no central server that all clients connect to download the files. In BitTorrent land, all clients can be servers and all servers are clients.  
 
 Let's say you want to download David Copperfield by Charles Dickens using the BitTorrent protocol. The steps will be:
 
-* A torrent file for David Copperfield will be downloaded from the web using your browser. This torrent file contains some info containing metadata about the book. Some of the metadata will be the file size, name of the file and may also include the hash of the file for verification purpose. The torrent file will also contain BitTorrent specific info like the trackers, file pieces hash e.t.c. Once these are parsed, connection(s) to the tracker(s) is/are initiated.
+* A torrent file for David Copperfield will be downloaded from the web using your browser. This torrent file contains some info containing metadata about the book. Some of the metadata will be the file size, and name and may also include the hash of the file for verification purposes. The torrent file will also contain BitTorrent-specific info like the trackers, file pieces hash e.t.c. Once these are parsed, connection(s) to the tracker(s) is/are initiated.
 
-* The tracker is a server that has the ip address and ports of all the peers that are currently downloading and uploading the file. We connect to the tracker to get a list of the peers that are currently sharing and receiving the file. Once this is successfully done, our ip address and port is added to this list for future peers for a limited time.  
-It's true that BitTorrent is a peer to peer protocol but there's a measure of centralisation in it. BitTorrent now supports true decentralisation by using DHT but this won't be convered here.  
-By the way, I have noticed that most working decentralised protocol usually incorporates a centralised method for locating other devices before switching to the main protocol for communication kind of like the way the internet all use the [13 root name server addresses](https://en.wikipedia.org/wiki/Root_name_server) for DNS lookup before main communication starts.
+* The tracker is a server that has the IP address and ports of all the peers that are currently downloading and uploading the file. We connect to the tracker to get a list of the peers that are currently sharing and receiving the file. Once this is successfully done, our IP address and port are added to this list for future peers for a limited time.  
+BitTorrent is indeed a peer-to-peer protocol but there's a measure of centralization in it. BitTorrent now supports true decentralization by using DHT but this won't be covered here.  
+By the way, I have noticed that most working decentralized protocol usually incorporates a centralized method for locating other devices before switching to the main protocol for communication kind of like the way the internet all use the [13 root name server addresses](https://en.wikipedia.org/wiki/Root_name_server) for DNS lookup before the main communication starts.  
 
 * A peer is a device like yours too which makes you a peer. There are 2 types of peers though they aren't mutually exclusive. The peer who downloads is a **leecher** while the one who uploads is a **seeder**. A peer can be both. We download pieces of the file from the seeders. A piece is a segment of the file. The pieces are verified and inserted into the file in their correct position. Once all the pieces are downloaded, the file download is complete. If you remain in the network, you stop being a leecher and fully becomes a seeder.  
-The protocol performs better when they are more seeders so there are mechanisms in place to encourage more seeder-like behaviour. These mechanisms won't be covered here. The client I built actually encourages leeching so your download could be slower than if you use the popular BitTorrent clients.
+The protocol performs better when they are more seeders so there are mechanisms in place to encourage more seeder-like behavior. These mechanisms won't be covered here. The client I built encourages leeching so your download could be slower than if you use the popular BitTorrent clients.
 
 This concludes the overview. The next section covers technical details about the torrent file.
 
