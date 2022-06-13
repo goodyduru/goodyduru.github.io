@@ -42,11 +42,12 @@ Some of the important keys in the torrent dictionary are listed below:
 * **announce-list**: This contains a list of tracker urls.
 * **info**: This is a dictionary that contains file-related details. A hash of the bencoded value of this key (including the _d_ and _e_) is used by both the trackers and peers to identify the torrent file. Some of the details are: 
     * _pieces_: A long binary string consisting of the concatenation of the SHA-1 hash of each piece. Each hash is 20 bytes long so this makes the length of this string a multiple of 20. We can divide this string length by 20 to get the exact number of pieces to download.
-    * _piece length_: he size of each piece in bytes. The size of the last piece might not be as large as this value.
+    * _piece length_: the size of each piece in bytes. The size of the last piece might not be as large as this value.
     * _name_: The name of the file/directory to download.
     * _files_: This key only appears when more than one file is downloaded. It's a dictionary that contains the _path_ and _length_ of each file.
-    * _length_: This key only appears **directly under the info dictionary** when only one file is downloaded. It contains the size of the file in bytes. The value of this gives the accurate size of the file. When more than one file is downloaded, this key appears under the **files** key which is defined above. In this situation, a sum of these values gives the total size of the files.  
-    An accurate size of the file(s) must be calculated because this makes the size of the last piece correctly inferred. The modulo function can calculate the last piece's size if the total file size is not divisible by the **piece length**.
+    * _length_: This key only appears **directly under the info dictionary** when only one file is downloaded. It contains the size of the file in bytes. The value of this gives the accurate file size.  
+    When more than one file is downloaded, this key appears under the **files** key defined above. In this situation, a sum of these values gives the total size of the files.  
+    The file(s) size must be calculated accurately because this helps in correctly inferring the last piece's size. The modulo function can calculate the last piece's size if the total file size is not divisible by the **piece length**.
 
 Note that these aren't all the keys in the torrent file. You can read about more torrent keys and details [here](https://wiki.theory.org/index.php/BitTorrentSpecification#Metainfo_File_Structure).
 
