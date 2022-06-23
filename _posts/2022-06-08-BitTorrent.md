@@ -6,6 +6,8 @@ categories: networking c-programming
 ---
 
 ## Building a BitTorrent Client
+This post is for those who are interested in the internal details of the BitTorrent protocol.
+
 This post contains all that I've learnt about building a BitTorrent Client with C. It's not a replacement for the BitTorrent Protocol spec. You can find the official spec [here](http://bittorrent.org/beps/bep_0003.html) though this is not as detailed and thorough as the [unofficial spec](http://wiki.theory.org/BitTorrentSpecification). I advise you to read both of them for a more comprehensive understanding of the protocol. 
 
 This post does not cover working with trackerless torrents using [peer exchange](https://www.bittorrent.org/beps/bep_0011.html) and [Distributed Hash Table protocol](https://www.bittorrent.org/beps/bep_0005.html). It only covers the original protocol, which must involve a tracker. 
@@ -20,7 +22,7 @@ I'll start this post by giving an overview of the Bittorrent protocol before goi
 
 <img src="/assets/images/How-BitTorrent-works.jpg">  
 
-_Overview of the Protocol, from Topology Aware Worm Propagation in BitTorrent : Modeling and Analysis by Sinan, Abdelmadjid and Yacine (2008)_  
+_Overview of the Protocol, from Topology Aware Worm Propagation in BitTorrent : Modeling and Analysis by Sinan, Abdelmadjid, and Yacine (2008)_  
 
   
 The BitTorrent protocol is a peer-to-peer protocol used for distributing files. This means that a peer can act as a client and a server when sharing a file. There is no central server that all clients connect to download the files. In BitTorrent land, all clients can be servers while all servers are clients.  
@@ -186,6 +188,11 @@ The socket descriptor has to be set to non-blocking when using non-multithread m
 Once two peers are connected, the first message type that is exchanged is the handshake message.
 
 #### Handshake Message
+
+<img src="/assets/images/handshake.png">  
+
+_Illustration of handshake message, from [Jesse Li](https://blog.jse.li/posts/torrent/)_  
+
 This message type is required. The peer that initiated the connection has to send this message to the accepting peer. Once this message type is sent by the initiating peer, the accepting peer replies with its handshake message.  
 
 The structure of the message is `<pstrlen><pstr><reserved><info_hash><peer_id>`. `<pstrlen>` is always 19, it signifies the length of `<pstr>` which is always "BitTorrent protocol". `<reserved>` is always 0 except if you want to support extensions to the protocol. `<info_hash>` is the same info hash that was sent to the tracker(s). `<peer_id>` is the same peer id that was also sent to the tracker(s). The length of this message is 68 bytes. Here's an example.  
@@ -279,6 +286,10 @@ An example of a _have_ message is shown here
 
 The **piece_index** is the index of the piece denoted in the message. It is zero-based (the first piece will be index 0).  
 
+<img src="/assets/images/bit-array.jpg">  
+
+_Structure of bit-array, from [Emory U.](http://www.mathcs.emory.edu/~cheung/Courses/255/Syllabus/1-C-intro/bit-array.html)_  
+
 Another way that a peer can signal the pieces it has is to send them all as a _bitfield_ message. A data structure that a peer can use to store the pieces it has is a **bit-array**, which is an array of bits. The array length is the number of the shared file(s) pieces. Each item in the array is `1` if the file piece is absent, or `0` if the file(s) piece is absent. Continuing the example above, the peer having 14 pieces might not have pieces 10 and 13, so the bit-array would be `1111111110110111`. C has no native structure for bit-arrays, so an array of characters can be used where each character represents 8 pieces, meaning the array would have _number of pieces/8_ items. Note that this length is rounded up to the nearest integer, so the length for 16 file(s) pieces will be 2. Any spare bits at the end of the last character are set to 0.  
 
 An example of a _bitfield_ message is shown below
@@ -363,6 +374,11 @@ It is sent to the receivers to notify them of the port the sender DHT's node is 
 ```
 
 ### Writing a File
+
+<img src="/assets/images/pieces.png">  
+
+_Illustration showing the relationship between files and pieces. Multiple files can share a piece, and multiple pieces can belong to a file. This relationship is represented via colors in the diagram above._
+
 When a piece is verified, it is still in the RAM. Keeping all the file(s) pieces in memory can use lots of memory. For example, a 4GB file would use up to ~4GB of memory if all its pieces are kept there. It is recommended that once a piece is verified, it should be written to the file except if the peer is currently sharing that piece.  
 
 If the torrent contains only one file, writing a piece to the file is a trivial matter of using the piece index to calculate the offset within the file and writing the piece from that offset. A lot of programming languages provide the mechanism for that.  
