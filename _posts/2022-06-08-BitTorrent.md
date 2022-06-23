@@ -17,6 +17,13 @@ You can find the source code of my client on [Github](https://github.com/goodydu
 I'll start this post by giving an overview of the Bittorrent protocol before going into details.
 
 ### Overview Of The BitTorrent Protocol
+
+<figure style="margin: auto;">
+    <img src="{{site.url}}/assets/images/How-BitTorrent-works.jpg">
+    <figcaption>Overview of the Protocol, <cite>From Topology Aware Worm Propagation in BitTorrent : Modeling and Analysis by Sinan, Abdelmadjid and Yacine (2008) </cite></figcaption>
+</figure>
+
+
 The BitTorrent protocol is a peer-to-peer protocol used for distributing files. This means that a peer can act as a client and a server when sharing a file. There is no central server that all clients connect to download the files. In BitTorrent land, all clients can be servers while all servers are clients.  
 
 Let's say you want to download David Copperfield by Charles Dickens using the BitTorrent protocol. The steps will be:
