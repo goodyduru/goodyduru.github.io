@@ -19,7 +19,7 @@ I'll start this post by giving an overview of the Bittorrent protocol before goi
 ### Overview Of The BitTorrent Protocol
 
 <figure style="margin: auto;">
-    <img src="{{site.url}}/assets/images/How-BitTorrent-works.jpg">
+    <img src="assets/images/How-BitTorrent-works.jpg">
     <figcaption>Overview of the Protocol, <cite>From Topology Aware Worm Propagation in BitTorrent : Modeling and Analysis by Sinan, Abdelmadjid and Yacine (2008) </cite></figcaption>
 </figure>
 
