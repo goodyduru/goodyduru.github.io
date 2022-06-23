@@ -6,9 +6,9 @@ categories: networking c-programming
 ---
 
 ## Building a BitTorrent Client
-This post contains all that I've learnt about building a BitTorrent Client with C. It's not a replacement for the BitTorrent Protocol spec. You can find the official spec [here](http://bittorrent.org/beps/bep_0003.html) though this is not as detailed and thorough as the [unofficial spec](http://wiki.theory.org/BitTorrentSpecification). I advise you to read both of them if you need a full understanding of the protocol. 
+This post contains all that I've learnt about building a BitTorrent Client with C. It's not a replacement for the BitTorrent Protocol spec. You can find the official spec [here](http://bittorrent.org/beps/bep_0003.html) though this is not as detailed and thorough as the [unofficial spec](http://wiki.theory.org/BitTorrentSpecification). I advise you to read both of them for a more comprehensive understanding of the protocol. 
 
-This post does not cover working with trackerless torrents using [peer exchange](https://www.bittorrent.org/beps/bep_0011.html) and [Distributed Hash Table protocol](https://www.bittorrent.org/beps/bep_0005.html). It only covers the original protocol which must involve a tracker. 
+This post does not cover working with trackerless torrents using [peer exchange](https://www.bittorrent.org/beps/bep_0011.html) and [Distributed Hash Table protocol](https://www.bittorrent.org/beps/bep_0005.html). It only covers the original protocol, which must involve a tracker. 
 
 The client I built mainly implements the client side of the protocol and some of the server-side. This means that it can share files if a peer requests for a file but it doesn't listen for a connection. The only way a peer can communicate with this client is if this client initiates the connection.
 
@@ -17,16 +17,16 @@ You can find the source code of my client on [Github](https://github.com/goodydu
 I'll start this post by giving an overview of the Bittorrent protocol before going into details.
 
 ### Overview Of The BitTorrent Protocol
-The BitTorrent protocol is a peer-to-peer protocol used for distributing files. This means that a peer can act as a client and a server when sharing a file. There is no central server that all clients connect to to download the files. In BitTorrent land, all clients can be servers while all servers are clients.  
+The BitTorrent protocol is a peer-to-peer protocol used for distributing files. This means that a peer can act as a client and a server when sharing a file. There is no central server that all clients connect to download the files. In BitTorrent land, all clients can be servers while all servers are clients.  
 
 Let's say you want to download David Copperfield by Charles Dickens using the BitTorrent protocol. The steps will be:
 
 1. You download a torrent file for David Copperfield with your web browser. This torrent file contains some info containing metadata about the book. Some metadata will be the file name and size and may include the file hash for verification purposes. The torrent file will also contain BitTorrent-specific info like the trackers, hashes of the file(s) pieces, and more. Once these are parsed, connection(s) to the tracker(s) is/are initiated.
 2. The tracker is a server with a record of the IP address and ports of all the peers currently downloading and uploading the file. We connect to the tracker to get a list of peers that are sharing and receiving the file at the time. Once this is done, your device IP address and port are added to this record for the benefit of future peers, but only for a limited time.  
-- BitTorrent is indeed a peer-to-peer protocol but there's a measure of centralization in it. BitTorrent now supports true decentralization by using DHT but this won't be covered here.  
-- Side note, I have noticed that most working decentralized protocols usually incorporate a centralized method for locating other devices before switching to the main protocol for communication similar to the way the internet all use the [13 root name server addresses](https://en.wikipedia.org/wiki/Root_name_server) for DNS lookup before the main communication starts.  
-3. A peer is a device like yours which makes you a peer. There are two types of peers though they aren't mutually exclusive. The peer that downloads is a **leecher** while the peer who uploads is a **seeder**. A peer can be both a leecher and a seeder. We download pieces of the file from the seeders. A piece is a segment of the file. The file's pieces are verified and inserted into the file in their correct position. Once all the file's pieces have been received, the download is complete. If you remain in the network, you stop being a leecher and fully become a seeder.  
-The protocol performs better when there are more seeders so mechanisms are in place to encourage more seeder-like behavior. I won't cover these mechanisms. The client that I built encourages leeching so your download speed could be slower than if you use the popular BitTorrent clients.
+BitTorrent is indeed a peer-to-peer protocol, but it has a measure of centralization. BitTorrent now supports true decentralization using DHT, but this won't be covered here.  
+Side note. I have noticed that most working decentralized protocols usually incorporate a centralized method for locating other devices before switching to the main protocol for communication similar to the way the internet all uses the [13 root name server addresses](https://en.wikipedia.org/wiki/Root_name_server) for DNS lookup before the main communication starts.  
+3. A peer is a device like yours which makes you a peer. There are two types of peers though they aren't mutually exclusive. The peer who downloads is a **leecher**, while the peer who uploads is a **seeder**. A peer can be both a leecher and a seeder. We download pieces of the file from the seeders. A piece is a segment of the file. The file's pieces are verified and inserted into the file in their correct position. Once all the file's pieces have been received, the download is complete. If you remain in the network, you stop being a leecher and fully become a seeder.  
+The protocol performs better when there are more seeders so mechanisms are in place to encourage more seeder-like behavior. I won't cover these mechanisms. The client I built encourages leeching, so your download speed could be slower than if you use the popular BitTorrent clients.
 
 ### The Torrent File - technical details
 A torrent file is a giant dictionary that contains information on how to download the file. This dictionary is encoded using the bencode format.  
@@ -41,7 +41,7 @@ Some of the important keys in the torrent dictionary are listed below:
     * _piece length_: the size of each piece in bytes. The size of the last piece might not be as large as this value.
     * _name_: The name of the file/directory to download.
     * _files_: This key only appears when more than one file is downloaded. It's a dictionary that contains the _path_ and _length_ of each file.
-    * _length_: This key only appears **directly under the info dictionary** when only one file is downloaded. It contains the size of the file in bytes. The value of this gives the accurate file size. When more than one file is downloaded, this key appears under the **files** key defined above. In this case, a sum of these values gives the total size of the files. The file's size must be accurately calculated because this helps to correctly inferr the last piece's size. The modulo function can calculate the final piece's size if the total file size is not divisible by the **piece length**.
+    * _length_: This key only appears **directly under the info dictionary** when only one file is downloaded. It contains the size of the file in bytes. The value of this gives the accurate file size. When more than one file is downloaded, this key appears under the **files** key defined above. In this case, a sum of these values gives the total size of the files. The file's size must be accurately calculated because this helps to correctly infer the last piece's size. The modulo function can calculate the final piece's size if the total file size is not divisible by the **piece length**.
 
 Note that these aren't all the keys in the torrent file. You can read about more torrent keys and details [here](https://wiki.theory.org/index.php/BitTorrentSpecification#Metainfo_File_Structure).
 
@@ -61,7 +61,7 @@ A GET request is sent to the tracker where the url is either the **announce** va
 
 * **info_hash**: This is the urlencoded SHA-1 hash of the **info** key value in the bencoded torrent dictionary. It is 20 bytes in length. The **info** key value must include the _d_ and _e_ characters used to delimit the start and end of the dictionary.  The hash has to be correct because the tracker uses it to determine the torrent file. If this is incorrect, the tracker will either produce an error or give you a different set of peers. The hash is a binary string and therefore has to be urlencoded.
 
-* **peer_id**: This is a unique id that your client generates to identify your device. The length has to be exactly 20 characters long. The characters can even be a binary. Different BitTorrent clients have [different conventions](https://wiki.theory.org/index.php/BitTorrentSpecification#peer_id) for generating peer_id. This parameter value should be urlencoded.
+* **peer_id**: This is a unique id your client generates to identify your device. The length has to be exactly 20 characters long. The characters can even be a binary. Different BitTorrent clients have [different conventions](https://wiki.theory.org/index.php/BitTorrentSpecification#peer_id) for generating peer_id. This parameter value should be urlencoded.
 
 * **port**: The port on which your client is listening. It is typically set to between 6881-6889. If your device is behind a NAT, you might need to use TURN/STUN methods to determine what your port is in the NAT before setting this parameter. If you choose to be solely a leecher, you can set this to 0.
 
@@ -256,7 +256,7 @@ The structure of an _uninterested_ message is
 ```
 
 ##### Have/Bitfield message
-A peer has to signal the pieces it has to another peer. It is frequently appended to the handshake message response. They are two message types that do this. Either one of them is sent or a combination of both are sent.  
+A peer has to signal the pieces it has to another peer. It is frequently appended to the handshake message response. They are two message types that do this. Either one of them is sent or a combination of both is sent.  
 
 The _have_ message type is sent by a peer to signal that it has a piece. A peer can send several of them to the other peer. For example, if a file contains 16 pieces and a peer has 14 of them, the peer could send 14 _have_ messages to the other peer each containing a different piece index. A client must have a way to keep a record of pieces that each peer it's connected to has.  
 
@@ -273,7 +273,7 @@ An example of a _have_ message is shown here
 
 The **piece_index** is the index of the piece denoted in the message. It is zero-based (the first piece will be index 0).  
 
-Another way that a peer can signal the pieces it has is to send them all as a _bitfield_ message. A data structure that a peer can use to store the pieces it has is a **bit-array**, which is an array of bits. The array length is the number of the shared file(s) pieces. Each item in the array is `1`, if the file piece is absent, or `0` if the file(s) piece is absent. Continuing the example above, the peer having 14 pieces might not have pieces 10 and 13, so the bit-array would be `1111111110110111`. C has no native structure for bit-arrays, so an array of characters can be used where each character represents 8 pieces, meaning the array would have _number of pieces/8_ items. Note that this length is rounded up to the nearest integer, so the length for 16 file(s) pieces will be 2. Any spare bits at the end of the last character are set to 0.  
+Another way that a peer can signal the pieces it has is to send them all as a _bitfield_ message. A data structure that a peer can use to store the pieces it has is a **bit-array**, which is an array of bits. The array length is the number of the shared file(s) pieces. Each item in the array is `1` if the file piece is absent, or `0` if the file(s) piece is absent. Continuing the example above, the peer having 14 pieces might not have pieces 10 and 13, so the bit-array would be `1111111110110111`. C has no native structure for bit-arrays, so an array of characters can be used where each character represents 8 pieces, meaning the array would have _number of pieces/8_ items. Note that this length is rounded up to the nearest integer, so the length for 16 file(s) pieces will be 2. Any spare bits at the end of the last character are set to 0.  
 
 An example of a _bitfield_ message is shown below
 
