@@ -1,5 +1,4 @@
 ---
-layout: home
 list_title: Read My Latest Posts
 title: ''
 ---
