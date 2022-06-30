@@ -394,3 +394,5 @@ Your piece structure implementation should account for the files that each piece
 * You can find my implementation in C on [Github](https://github.com/goodyduru/simpletorrent).
 
 Happy coding!
+
+_**Thanks** to Nwamaka and Lekan for reading drafts of this._
