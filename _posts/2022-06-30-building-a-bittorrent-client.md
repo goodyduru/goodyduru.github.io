@@ -5,7 +5,6 @@ date: 2022-06-30
 categories: networking c-programming
 ---
 
-## Building a BitTorrent Client
 This post is for those who are interested in the internal details of the BitTorrent protocol.
 
 This post contains all that I've learnt about building a BitTorrent Client with C. It's not a replacement for the BitTorrent Protocol spec. You can find the official spec [here](http://bittorrent.org/beps/bep_0003.html) though this is not as detailed and thorough as the [unofficial spec](http://wiki.theory.org/BitTorrentSpecification). I advise you to read both of them for a more comprehensive understanding of the protocol. 
