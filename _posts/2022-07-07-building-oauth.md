@@ -38,7 +38,7 @@ Before we talk about OAuth of the Authorization Code kind, we need to understand
 _Illustration showing the OAuth 2.0 flow, from [Digital Ocean](https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2)_
 
 #### Client Registration
-Before a client can be involved in the OAuth flow, it needs to be registered with the **Authorization Server**. This registration is done for security reasons to ensure the client is verified. The client name and website will be required as information for registration. Some OAuth service will also request for the Redirect/Callback URL.  
+Before a client can be involved in the OAuth flow, it needs to be registered with the **Authorization Server**. This registration is done for security reasons to ensure the client is verified. The client name and website will be required information when registering. Some OAuth service will also request for the Redirect/Callback URL.  
 
 On successful registration of the client, the server will generate credentials for it. This credentials will be the client identifier and client secret. This credentials will be used for authenticating the client during the Client Authentication stage.
 
@@ -233,7 +233,7 @@ OAuth is a really fascinating topic and one of the most impressive pillars of ou
 
 In the above article and code, I left out PKCE short for Proof Key for Code Exchange. PKCE guarantees extra security against interception attacks on the authorization code. The [spec](https://datatracker.ietf.org/doc/html/rfc7636) on it is an easy read and covers it well.  
 
-My code on OAuth implementation (server & client) can be found on [Github](https://github.com/goodyduru/django-oauth-experiments).  
+My basic OAuth implementation (server & client) can be found on [Github](https://github.com/goodyduru/django-oauth-experiments).  
 
 I will cover OAuth for terminal based app in Part Two.
 
