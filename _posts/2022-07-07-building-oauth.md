@@ -47,9 +47,7 @@ Note that this stage isn't a part of the OAuth flow, so some service might not r
 #### User Authorization
 The client provides a link to the user with a url whose structure looks like  
 
-    ```
-        https://authorization_server_domain/authorize_path?response_type=code&client_id=CLIENT_ID&scope=scopes&state=RANDOM_STRING&redirect_uri=https://client_domain/callback_path
-    ```
+    https://authorization_server_domain/authorize_path?response_type=code&client_id=CLIENT_ID&scope=scopes&state=RANDOM_STRING&redirect_uri=https://client_domain/callback_path
 
 * The `authorization_server_domain` is the OAuth provider's domain name e.g `github.com` is Github's domain name.
 * The `authorize_path` is the path to the user's authorization endpoint e.g `/login/oauth/authorize` is Github's user authorization endpoint's path.
@@ -113,10 +111,10 @@ The next stage is executed when the user grants authorization.
 #### Authorization Server Sends Authorization Code
 The server generates an _authorization code_ and records it alongside the _client_ in its db/cache. It is recommended that this code should have an expiry time to prevent reuse in the future. This code and the `state` (originally sent by the client) are added as parameters to the `redirect_uri` provided by the client (either during the initial request or registration). This redirection url will be similar to this structure `{redirect_uri}?code={authorization_code}&state={state}`.  
 
-Using the example url shown above, here is an example url  
-    ```
-        https://example.com/callback?code=RANDOM_STRING&state=RANDOM_STRING
-    ``` 
+Using the example url shown above, here is an example url   
+
+    https://example.com/callback?code=RANDOM_STRING&state=RANDOM_STRING
+    
 The user's browser/app is redirected to the above url.  
 
 Here's a simple implementation of this stage  
