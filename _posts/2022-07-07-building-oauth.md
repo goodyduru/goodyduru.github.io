@@ -5,7 +5,7 @@ date: 2022-07-07
 categories: authentication web-programming 
 ---
 
-OAuth (**O**pen **A**uthorization) is an open standard for access delegation, commonly used as a way for internet users to grant websites or applications access to their information on other websites without giving them the passwords. It's quite a mouthful, right? That's the definition from [Wikipedia](https://en.wikipedia.org/wiki/OAuth) for the specification behind the _Login With Facebook_, _Login With Google_ and _Login with [Fill In Popular Site]_ buttons we see when we want to register or login to our various accounts on the web.  
+OAuth (**O**pen **A**uthorization) is an open standard for access delegation, commonly used as a way for internet users to grant websites or applications access to their information on other websites without giving them the passwords. It's quite a mouthful, right? That's the definition from [Wikipedia](https://en.wikipedia.org/wiki/OAuth) for the specification behind the _Login With Facebook_, _Login With Google_ and _Login with [Fill In Popular Site]_ buttons we see whenever we want to register or login to our various web accounts.  
 
 This post tries to explain the workings behind the spec. The post is for those that are interested in the implementation of the standard. If you just want to include the different login/register buttons on your site, I'd advise that you use the relevant libraries from the identity providers you wish to use.  
 
@@ -24,18 +24,18 @@ The purpose of OAuth is about getting access tokens. The tokens are used in subs
 Before we talk about OAuth of the Authorization Code kind, we need to understand what the parties/roles are.  
 
 ### OAuth Parties/Roles
-* Resource Owner: The user/entity that owns the resources and is capable of granting access to it. For the purpose of this article, resource owner will be called user.
+* **Resource Owner**: The user/entity that owns the resources and is capable of granting access to it. For the purpose of this article, resource owner will be called user.
 
-* Client: The application that requires access to the resource. Once authorization is granted by the user, the application makes resource requests on behalf of the user.
+* **Client**: The application that requires access to the resource. Once authorization is granted by the user, the application makes resource requests on behalf of the user.
 
-* Authorization Server: This server handles authentication and authorization on behalf of the **resource server**. It handles the authentication of the user via the authentication endpoint. Once that is successful, authentication of the **client** is done. If this is also successful, an access token is then issued to the **client**. 
+* **Authorization Server**: This server handles authentication and authorization on behalf of the **resource server**. It handles the authentication of the user via the authentication endpoint. Once that is successful, authentication of the **client** is done. If this is also successful, an access token is then issued to the **client** via the token endpoint. 
 
-* Resource Server: The server protects the resource on behalf of the user. Once authorization has been granted by the the **authorization server**, the resource server accepts and responds to protected resource requests by the client.  
+* **Resource Server**: The server protects the resource on behalf of the user. Once authorization has been granted by the the **authorization server**, the resource server accepts and responds to protected resource requests by the client.  
 
 ### How It Works
 <image src="/assets/images/oauth/auth_code_flow.png">
 
-_Illustration showing the OAuth 2.0 flow, from [Digital Ocean](https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2)
+_Illustration showing the OAuth 2.0 flow, from [Digital Ocean](https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2)_
 
 #### Client Registration
 Before a client can be involved in the OAuth flow, it needs to be registered with the **Authorization Server**. This registration is done for security reasons to ensure the client is verified. The client name and website will be required as information for registration. Some OAuth service will also request for the Redirect/Callback URL.  
@@ -46,16 +46,20 @@ Note that this stage isn't a part of the OAuth flow, so some service might not r
 
 #### User Authorization
 The client provides a link to the user with a url whose structure looks like  
-    `https://authorization_server_domain/authorize_path?client_id=CLIENT_ID&scope=scopes&state=RANDOM_STRING&redirect_uri=https://client_domain/callback_path`  
 
-The `authorization_server_domain` is the OAuth provider's domain name e.g `github.com` is Github's domain name.  
-The `authorize_path` is the path to the user's authorization endpoint e.g `/login/oauth/authorize` is Github's user authorization endpoint's path.  
-The `client_id` is the client's identifier. It is commonly generated when the client/app is registered with the OAuth provider. It is usually required.  
-The `scope` specifies the level of authorization that the client will have on authorization. It is commonly expressed as a list of space-delimited, case-sensitive string. `read:user repo` is an example of scopes as used in Github. It is recommended that the user authorization url is encoded mainly due to the space delimition of the scope parameter.  
-The `state` is a random string generated by the client to maintain state between this step and the callback step. It's main role is to prevent cross-site forgery. The spec goes into [detail](https://datatracker.ietf.org/doc/html/rfc6749#section-10.12) concerning the reasoning behind this. It is recommended for many OAuth providers.  
-The `redirect_uri` is where the user's browser/app is redirected to when the user has successfully granted the client the authorization. Some providers require this on registration, which makes this an optional parameter in their authorization url.  
+    ```
+        https://authorization_server_domain/authorize_path?response_type=code&client_id=CLIENT_ID&scope=scopes&state=RANDOM_STRING&redirect_uri=https://client_domain/callback_path
+    ```
 
-After the user clicks the link, an http request is made to the **authorization server**. The server validates the `client_id` and the `redirect_uri`. If these aren't valid, an error response is sent to the referrer and the flow stops. A login page is then displayed for an unauthenticated user. If the user logs in or is authenticated, an alert is displayed for the user to explicitly grant authorization to the client.  
+* The `authorization_server_domain` is the OAuth provider's domain name e.g `github.com` is Github's domain name.
+* The `authorize_path` is the path to the user's authorization endpoint e.g `/login/oauth/authorize` is Github's user authorization endpoint's path.
+* The `response_type` parameter is the OAuth authorization grant type. The value must be set to `code`. The spec states that this is required but some OAuth providers don't require it especially if they only support this grant type.
+* The `client_id` parameter is the client's identifier. It is commonly generated when the client/app is registered with the OAuth provider. It is commonly required.
+* The `scope` parameter specifies the level of authorization that the client will have on authorization. It is commonly expressed as a list of space-delimited, case-sensitive string. `read:user repo` is an example of scopes as used in Github. It is recommended that the user authorization url is encoded mainly due to the space delimition of the scope parameter.
+* The `state` parameter is a random string generated by the client to maintain state between this step and the callback step. It's main role is to prevent cross-site forgery. The spec goes into [detail](https://datatracker.ietf.org/doc/html/rfc6749#section-10.12) concerning the reasoning behind this. It is a required parameter by many OAuth providers.
+* The `redirect_uri` parameter is where the user's browser/app is redirected to when the user has successfully granted the client the authorization. Some providers require this on registration, which makes this an optional parameter in their authorization url.
+
+After the user clicks the link, an http request is made to the **authorization server**. The server validates the `client_id` and the `redirect_uri`. If the validation succeeds, a form is displayed for the authenticated user to explicitly grant authorization to the client (unauthenticated users have to log in first). An error response is shown to the user if the validation fails.  
 
 A simple Django OAuth server with the following OAuth models
 
@@ -107,9 +111,12 @@ A simple implementation of the `client_id` and `redirect_uri` validation is show
 The next stage is executed when the user grants authorization.
 
 #### Authorization Server Sends Authorization Code
-The server generates an _authorization code_ and records it alongside the _client_ in its db/cache. It is recommended that this code should have an expiry time to prevent reuse in the future. This code and the `state` (originally sent by the client) are added as parameters to the `redirect_uri` provided by the client (either during the initial request or registration). This redirection uri will be similar to this structure `{redirect_uri}?code={authorization_code}&state={state}`.  
+The server generates an _authorization code_ and records it alongside the _client_ in its db/cache. It is recommended that this code should have an expiry time to prevent reuse in the future. This code and the `state` (originally sent by the client) are added as parameters to the `redirect_uri` provided by the client (either during the initial request or registration). This redirection url will be similar to this structure `{redirect_uri}?code={authorization_code}&state={state}`.  
+
 Using the example url shown above, here is an example url  
-    `https://example.com/callback?code=RANDOM_STRING&state=RANDOM_STRING`  
+    ```
+        https://example.com/callback?code=RANDOM_STRING&state=RANDOM_STRING
+    ``` 
 The user's browser/app is redirected to the above url.  
 
 Here's a simple implementation of this stage  
@@ -136,28 +143,28 @@ Here's a simple implementaiton of this validation and request process (Github OA
 
 ```python
     def callback(request):
-    code = request.GET.get('code')
-    state = request.GET.get('state')
-    if state != request.session['state']:
-        raise Http404('Wrong site')
-    data = {
-        'client_id': settings.CLIENT_ID,
-        'client_secret': settings.CLIENT_SECRET,
-        'code': code
-    }
-    headers = {
-        'Accept': 'application/json'
-    }
-    response = requests.post('https://github.com/login/oauth/access_token', data=data, headers=headers)
+        code = request.GET.get('code')
+        state = request.GET.get('state')
+        if state != request.session['state']:
+            raise Http404('Wrong site')
+        data = {
+            'client_id': settings.CLIENT_ID,
+            'client_secret': settings.CLIENT_SECRET,
+            'code': code
+        }
+        headers = {
+            'Accept': 'application/json'
+        }
+        response = requests.post('https://github.com/login/oauth/access_token', data=data, headers=headers)
 
-    try:
-        request.session['access_token'] = response.json()['access_token']
-    except requests.JSONDecodeError:
-        raise Http404('There was an error processing the response')
-    except Exception:
-        raise Http404('No access token was returned')
+        try:
+            request.session['access_token'] = response.json()['access_token']
+        except requests.JSONDecodeError:
+            raise Http404('There was an error processing the response')
+        except Exception:
+            raise Http404('No access token was returned')
 
-    ...
+        ...
 ```
 
 For the server, it validates the information sent by the client (client_id, client_secret, code). If this is successful, it generates a cryptographic token called the **access token** that might contain the user and scope information. This token is used by the client to access protected resources. It might also generate another token called the **refresh token**.  
@@ -195,7 +202,7 @@ Here's an example implementation of the server side of this stage which generate
         access_token = jwt.encode(payload, settings.SECRET_KEY)
         return JsonResponse({"access_token": access_token})
 ```
-The above implementation uses **JWT** to generate the token. Note that other kinds of tokens can be used in your implementation.  
+The above implementation uses **JWT** to generate the token. Other kinds of tokens can be used in your implementation.  
 
 #### Using The Access Token
 The client can now use the access token to carry out requests to the **resource server** as if it's the user. For example, it can use it to get the user's profile information (this is what the sign in buttons you see do), it could carry out actions on the **resource server** on behalf of the user e.t.c.  
@@ -226,7 +233,8 @@ An example where we get the user's github profile info using the access token is
 ### Conclusion
 OAuth is a really fascinating topic and one of the most impressive pillars of our modern web. For an important part of the web, it's remarkably simple to understand.  
 
-In the above article and code, I left out PKCE. PKCE guarantees extra security against interception attacks on the authorization code. The [spec](https://datatracker.ietf.org/doc/html/rfc7636) on it is an easy read and covers it well.  
+In the above article and code, I left out PKCE short for Proof Key for Code Exchange. PKCE guarantees extra security against interception attacks on the authorization code. The [spec](https://datatracker.ietf.org/doc/html/rfc7636) on it is an easy read and covers it well.  
+
 My code on OAuth implementation (server & client) can be found on [Github](https://github.com/goodyduru/django-oauth-experiments).  
 
 I will cover OAuth for terminal based app in Part Two.
