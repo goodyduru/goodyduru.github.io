@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Building OAuth"
+title: "Practical OAuth Part One"
 date: 2022-07-07
 categories: authentication web-programming 
 ---
