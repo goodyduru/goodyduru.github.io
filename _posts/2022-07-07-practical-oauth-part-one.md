@@ -137,7 +137,7 @@ In the callback endpoint, the client validates the `state` parameter value. It r
 
 Once this request is successful, the client can record this token in the user session.
 
-Here's a simple implementaiton of this validation and request process (Github OAuth)
+Here's a simple implementation of this validation and request process (Github OAuth)
 
 ```python
     def callback(request):
