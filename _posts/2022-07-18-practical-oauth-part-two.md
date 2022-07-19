@@ -7,19 +7,19 @@ categories: authentication web-programming terminal-app
 
 This is part two on how to write an OAuth client and server. If you have not read [Part One](https://goodyduru.github.io) yet, you should take a look at it.  
 
-This post covers a lesser-known part of OAuth, which is console app authentication. You've probably seen it in action with the gcloud and heroku apps. Console app OAuth generally follows the same flow as that of web app (auth code flow) with a few changes thrown in. I will explain how it works along with code examples. Note that the code is written in Python. You can find it [here](https://github.com/goodyduru/oauth-cmd).  
+This post covers a lesser-known part of OAuth, which is console app authentication. You've probably seen it in action with the _gcloud_ and _heroku_ apps. Console app OAuth generally follows the same flow as that of a web app (auth code flow) with a few changes thrown in. I will explain how it works along with code examples.  Note that I wrote the code in python. You can find it [here](https://github.com/goodyduru/oauth-cmd).  
 
 So here's how it works
 
 ### Register the App 
-This is needed for providers that require **Redirect/Callback URL** during registration. You can skip this step if this is not a requirement by your provider. This will need to be done separately from the registration of the web app (if you've registered it previously).  
+Providers that require a **Redirect/Callback URL** during registration require this step. You can skip this step if this is not a requirement by your provider. It will need to be done separately from the web app registration (if you've registered it previously).  
 
-For console-based app, `127.0.0.1` or `localhost` will be the host component of the redirect url. This is because your app will have to run a server for a limited time to make OAuth work. You could also include a path in the url if you want. An example of a redirect url for terminal based app during registration is `http://127.0.0.1/callback`.  
+For console-based apps, `127.0.0.1` or `localhost` will be the host component of the redirect url because your app will have to run a server for a limited time to make OAuth work. You could also include a path in the url if you want. An example of a redirect url for a terminal-based app during registration is `http://127.0.0.1/callback`.  
 
-The provider I used for this post (Github) does not need a port number during registration but it can be included during the **User Authorization** step. This flexible port number requirement is entirely dependent on the OAuth service you choose. When building an OAuth service, it is recommended that you have a flexible port number requirement to ease port number choice for apps that will use your service.
+The provider I used for this post (Github) does not need a port number during registration, but you can include it during the **User Authorization** step. This flexible port number requirement is dependent on the OAuth service you choose. When building an OAuth service, I recommend you have a flexible port number requirement to ease port number choice for apps that use your service.
 
 ### User Authorization
-Your app selects a port number to use. This port number can be a constant variable or it can be selected on the fly. If your OAuth provider allows flexible port number on authorization, it is recommended that you select a random port number. In python, it can be done this way
+Your app selects a port number to use. This port number can be a constant variable or selected on the fly. If your OAuth provider allows flexible port numbers on authorization, I recommend you select a random port number. In python, one way to do this is:
 
 ```python
     import socket
@@ -35,9 +35,9 @@ The next is to construct a url that looks like this.
 
     https://authorization_server_domain/authorize_path?response_type=code&client_id=CLIENT_ID&scope=scopes&state=RANDOM_STRING&redirect_uri=http://127.0.0.1:port_number/callback_path
 
-I explained the different components of the url in [Part One](https://goodyduru.github.io). The only difference between that url and the above is the use of local host.  
+I explained the different components of the url in [Part One](https://goodyduru.github.io). The only difference between that url and the above  is the use of the ip address of the local computer.  
 
-After constructing the url, you can display it to the user in the terminal or open it directly in a browser. Most programming languages support opening directly in a browser. In python it can be done with the inbuilt [webbrowser](https://docs.python.org/library/webbrowser.html) module.  
+After constructing the url, you can display it to the user in the terminal or open it directly in a browser. Most programming languages support opening directly in a browser.  In python, you can do this with the inbuilt [webbrowser](https://docs.python.org/library/webbrowser.html) module.  
 
 Here's a way to use it
 
@@ -50,14 +50,14 @@ Here's a way to use it
     github_url = f"https://github.com/login/oauth/authorize?client_id={CLIENT_ID}&scope=read:user&state={state}&redirect_uri={redirect_uri}"
     webbrowser.open(github_url)
 ```
-The `state` value is automatically generated just like in the web app version.
+The `state` value is a random string, similar to the web app version.
 
 ### Authorization Server Sends Authorization Code
-When the user grants authentication to the app, the server will generate an authorization code and include it and the `state` generated by the app in the callback url causing it to look similar to this
+When the user grants authentication to the app, the server will generate an authorization code and include it and the `state` generated by the app in the callback url. This callback url structure will be like this
 
     http://127.0.0.1:{port}/callback?code=RANDOM_STRING&state=RANDOM_STRING
 
-After constructing the url, the server will redirect to it. One problem though, unlike the normal web app which is within the purview of the browser, this app is a terminal app and can't just be redirected to. Luckily, there is a solution! The solution is for the app to listen on its selected port until it gets the redirection request. The server shouldn't run indefintely else it blocks. Once it receives the request, the server should close. Apart from allowing the rest of the code to execute, it also prevents subsequent, maybe harmful requests from coming in.  
+After constructing the url, the server will redirect to it. One problem though, unlike the normal web app which is within the purview of the browser, this app is a terminal app and can't just be redirected to it. Luckily, there is a solution! The solution is for the app to listen on its selected port until it gets the redirection request. The server shouldn't run indefinitely else, it blocks. Once it receives the request, the server should close. Apart from allowing the rest of the code to execute, it also prevents subsequent, maybe harmful requests from coming in.  
 
 In python, you can accomplish this with the inbuilt [http.server](https://docs.python.org/3/library/http.server.html#module-http.server) module. Here's an example
 
@@ -84,7 +84,7 @@ In python, you can accomplish this with the inbuilt [http.server](https://docs.p
 After handling the redirection request, the `do_GET` function raises an exception to force the server to close.
 
 ### App Requests Access Token
-The app sends a requests for an access token from the authorization server using the `code` param value stored by its short-lived server along with its credentials generated at registration time (client_id and client_secret). This request is commonly sent as a POST request in JSON format.  
+The app sends a request for an access token from the authorization server using the `code` param value stored by its short-lived server along with its credentials generated at registration time (client_id and client_secret). This request is commonly sent as a POST request in JSON format.  
 
 Here's an example in python
 
@@ -113,12 +113,12 @@ Here's an example in python
 The access token can now be used by the app to make requests with the identity of the user.
 
 ### Conclusion
-Terminal app OAuth is not has complex as it seems in theory. Finding it easy to implement was a lovely surprise. It's as straightforward as they come.  
+Terminal app OAuth is not as complex as it seems in theory. Finding it easy to implement was a lovely surprise. It's as straightforward as they come.  
 
 You can find my implementation on [Github](https://github.com/goodyduru/oauth-cmd). I hope you find it helpful!
 
 ### Resources 
-These are some good resources on this topic
-* The OAuth [spec](https://datatracker.ietf.org/doc/html/rfc6749) especially the [section](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1) on Authorization Code should be read.
-* The OAuth 2.0 for Native Apps [spec](https://datatracker.ietf.org/doc/html/rfc8252) is the resource for this part of OAuth. I covered just a bit of it in this article which is mainly the Lookback Interface Redirection [section](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3). You should give that a read.  
+Here are some of the awesome resources on this topic
+* The OAuth [spec](https://datatracker.ietf.org/doc/html/rfc6749) especially, the [section](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1) on Authorization Code should be read.
+* The OAuth 2.0 for Native Apps [spec](https://datatracker.ietf.org/doc/html/rfc8252) is the resource for this part of OAuth. I covered just a bit of it in this article, mainly the Lookback Interface Redirection [section](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3). You should give that a read.  
 * I found this OAuth for Apps Sample [code](https://github.com/googlesamples/oauth-apps-for-windows) a great help.
