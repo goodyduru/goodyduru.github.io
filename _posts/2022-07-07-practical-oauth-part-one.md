@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Practical OAuth Part One"
-date: 2022-07-07
+date: 2022-08-03
 categories: authentication web-programming 
 ---
 
@@ -10,6 +10,8 @@ OAuth (**O**pen **A**uthorization) is an open standard for access delegation, co
 This post tries to explain the workings behind the spec. The post is for those that are interested in the implementation of the standard. If you just want to include the different login/register buttons on your site, I'd advise that you use the relevant libraries from the identity providers you wish to use.  
 
 This article will consist of two parts. The first part will introduce OAuth and a browser-based implementation, the second will discuss the terminal app-based implementation.  
+
+The source code included in this article has been tested on Django 4.0.4.
 
 The way OAuth grants access is through tokens (access tokens). The tokens are used in subsequent interactions between the client app/website and the resource. There are four ways of authorizing an application. The four ways are:
 
