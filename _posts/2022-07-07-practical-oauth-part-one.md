@@ -35,9 +35,11 @@ Before discussing the Authorization Code implementation of OAuth, we need to und
 * **Resource Server**: The server protects the resource on behalf of the user. Once authorization has been granted by the **authorization server**, the resource server accepts and responds to protected resource requests by the client.  
 
 ### How It Works
+
 <image src="/assets/images/oauth/auth_code_flow.png">
 
 _Illustration showing the OAuth 2.0 flow, from [Digital Ocean](https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2)_
+
 
 #### Client Registration
 Before a client can be involved in the OAuth flow, it needs to be registered with the **Authorization Server**. This registration is done for security reasons to ensure the client is verified. The client name and website will be required information when registering. Some OAuth services will require the Redirect/Callback URL.  
