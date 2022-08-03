@@ -19,7 +19,7 @@ I'll start this post by giving an overview of the Bittorrent protocol before goi
 
 ### Overview Of The BitTorrent Protocol
 
-<img src="/assets/images/How-BitTorrent-works.jpg">  
+<img src="/assets/images/bittorrent/How-BitTorrent-works.jpg">  
 
 _Overview of the Protocol, from Topology Aware Worm Propagation in BitTorrent : Modeling and Analysis by Sinan, Abdelmadjid, and Yacine (2008)_  
 
@@ -188,7 +188,7 @@ Once two peers are connected, the first message type that is exchanged is the ha
 
 #### Handshake Message
 
-<img src="/assets/images/handshake.png">  
+<img src="/assets/images/bittorrent/handshake.png">  
 
 _Illustration of handshake message, from [Jesse Li](https://blog.jse.li/posts/torrent/)_  
 
@@ -285,7 +285,7 @@ An example of a _have_ message is shown here
 
 The **piece_index** is the index of the piece denoted in the message. It is zero-based (the first piece will be index 0).  
 
-<img src="/assets/images/bit-array.jpg">  
+<img src="/assets/images/bittorrent/bit-array.jpg">  
 
 _Structure of bit-array, from [Emory U.](http://www.mathcs.emory.edu/~cheung/Courses/255/Syllabus/1-C-intro/bit-array.html)_  
 
@@ -374,7 +374,7 @@ It is sent to the receivers to notify them of the port the sender DHT's node is 
 
 ### Writing a File
 
-<img src="/assets/images/pieces.png">  
+<img src="/assets/images/bittorrent/pieces.png">  
 
 _Illustration showing the relationship between files and pieces. Multiple files can share a piece, and multiple pieces can belong to a file. This relationship is represented via colors in the diagram above._
 
@@ -394,4 +394,4 @@ Your piece structure implementation should account for the files that each piece
 
 Happy coding!
 
-_**Thanks** to Nwamaka and Lekan for reading drafts of this._
+_**Thanks** to Nwamaka Imasogie and Lekan Raheem for reading drafts of this._
