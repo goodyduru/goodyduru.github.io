@@ -38,15 +38,15 @@ Before discussing the Authorization Code implementation of OAuth, we need to und
 
 <image src="/assets/images/oauth/auth_code_flow.png">  
 
-_Illustration showing the OAuth 2.0 flow, from [Digital Ocean](https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2)_
+_Illustration showing the OAuth 2.0 flow, from [Digital Ocean](https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2)_  
 
 
 #### Client Registration
 Before a client can be involved in the OAuth flow, it needs to be registered with the **Authorization Server**. This registration is done for security reasons to ensure the client is verified. The client name and website will be required information when registering. Some OAuth services will require the Redirect/Callback URL.  
 
-On successful registration of the client, the server will generate credentials for it. These credentials will be the client identifier and client secret. These credentials will be used for authenticating the client during the Client Authentication stage.
+On successful registration of the client, the server will generate credentials for it. These credentials will be the client identifier and client secret. These credentials will be used for authenticating the client during the Client Authentication stage.  
 
-Note that this stage isn't a part of the OAuth flow, so some services might not require client registration to use their OAuth service.
+Note that this stage isn't a part of the OAuth flow, so some services might not require client registration to use their OAuth service.  
 
 #### User Authorization
 The client provides a link to the user with a URL whose structure looks like  
@@ -63,7 +63,7 @@ The client provides a link to the user with a URL whose structure looks like
 
 After the user clicks the link, an HTTP request is made to the **authorization server**. The server validates the `client_id` and the `redirect_uri`. If the validation succeeds, a form is displayed for the authenticated user to explicitly grant authorization to the client (unauthenticated users have to log in first). An error response is shown to the user if the validation fails.  
 
-A simple Django OAuth server with the following OAuth models
+A simple Django OAuth server with the following OAuth models  
 
 ```python
     class OAuth(models.Model):
@@ -81,7 +81,7 @@ A simple Django OAuth server with the following OAuth models
         created_at = models.DateTimeField(auto_now_add=True)
 ```
 
-A simple implementation of the `client_id` and `redirect_uri` validation is shown below
+A simple implementation of the `client_id` and `redirect_uri` validation is shown below  
 
 ```python
     @login_required
@@ -110,7 +110,7 @@ A simple implementation of the `client_id` and `redirect_uri` validation is show
         return render(request, 'user/authorize.html', context={'authorize_form': form, 'client': client.url})
 ```
 
-The next stage is executed when the user grants authorization.
+The next stage is executed when the user grants authorization.  
 
 #### Authorization Server Sends Authorization Code
 The server generates an _authorization code_ and records it alongside the _client_ in its database/cache. It is recommended that this code should have an expiry time to prevent reuse in the future. This code and the `state` (originally sent by the client) are added as parameters to the `redirect_uri` provided by the client (either during the initial request or registration). This redirection URL will be similar to this structure `{redirect_uri}?code={authorization_code}&state={state}`.  
@@ -139,9 +139,9 @@ Here's a simple implementation of this stage
 #### Client Requests Access Token
 In the callback endpoint, the client validates the `state` parameter value. It requests an access token from the authorization server by sending its client credentials (client_id and client_secret) and the `code` parameter value. This request can be in any format supported by the server (JSON, x-www-form-urlencoded, ...). This request is commonly a POST request.  
 
-Once this request is successful, the client can record this token in the user session.
+Once this request is successful, the client can record this token in the user session.  
 
-Here's a simple implementation of this validation and request process (Github OAuth)
+Here's a simple implementation of this validation and request process (Github OAuth)  
 
 ```python
     def callback(request):
@@ -171,7 +171,7 @@ Here's a simple implementation of this validation and request process (Github OA
 
 For the server, it validates the information sent by the client (client_id, client_secret, code). If this is successful, it generates a cryptographic token called the **access token** that might contain the user and scope information. This token is used by the client to access protected resources. It might also generate another token called the **refresh token**.  
 
-Here's an example implementation of the server side of this stage which generates only access tokens and is unaware of scopes.
+Here's an example implementation of the server side of this stage which generates only access tokens and is unaware of scopes.  
 
 ```python
     @require_POST
@@ -239,7 +239,7 @@ In the above article and code, I left out PKCE short for Proof Key for Code Exch
 
 My basic OAuth implementation (server & client) can be found on [Github](https://github.com/goodyduru/django-oauth-experiments).  
 
-I will cover OAuth for a terminal-based app in Part Two.
+I will cover OAuth for a terminal-based app in Part Two.  
 
 ### Additional Resources
 * The OAuth [spec](https://datatracker.ietf.org/doc/html/rfc6749) is a recommended read and this [section](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1) on Authorization Code is a compulsory read.
