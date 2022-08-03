@@ -36,7 +36,7 @@ Before discussing the Authorization Code implementation of OAuth, we need to und
 
 ### How It Works
 
-<image src="/assets/images/oauth/auth_code_flow.png">
+<image src="/assets/images/oauth/auth_code_flow.png">  
 
 _Illustration showing the OAuth 2.0 flow, from [Digital Ocean](https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2)_
 
