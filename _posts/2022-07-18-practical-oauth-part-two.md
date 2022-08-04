@@ -1,13 +1,13 @@
 ---
 layout: post
 title: "Practical OAuth Part Two"
-date: 2022-07-18
+date: 2022-08-04
 categories: authentication web-programming terminal-app
 ---
 
-This is part two on how to write an OAuth client and server. If you have not read [Part One](https://goodyduru.github.io) yet, you should take a look at it.  
+This is part two on how to write an OAuth client and server. If you have not read [Part One](https://goodyduru.github.io/authentication/web-programming/2022/08/03/practical-oauth-part-one.html) yet, you should take a look at it.  
 
-This post covers a lesser-known part of OAuth, which is console app authentication. You've probably seen it in action with the _gcloud_ and _heroku_ apps. Console app OAuth generally follows the same flow as that of a web app (auth code flow) with a few changes thrown in. I will explain how it works along with code examples.  Note that I wrote the code in python. You can find it [here](https://github.com/goodyduru/oauth-cmd).  
+This post covers a lesser-known part of OAuth, which is console app authentication. You've probably seen it in action with the _gcloud_ and _heroku_ apps. Console app OAuth generally follows the same flow as that of a web app (auth code flow) with a few changes thrown in. I will explain how it works along with code examples.  The code is written in Python and was tested on the 3.10 version. You can find it [here](https://github.com/goodyduru/oauth-cmd).  
 
 So here's how it works
 
@@ -35,7 +35,7 @@ The next is to construct a url that looks like this.
 
     https://authorization_server_domain/authorize_path?response_type=code&client_id=CLIENT_ID&scope=scopes&state=RANDOM_STRING&redirect_uri=http://127.0.0.1:port_number/callback_path
 
-I explained the different components of the url in [Part One](https://goodyduru.github.io). The only difference between that url and the above  is the use of the ip address of the local computer.  
+I explained the different components of the url in [Part One](https://goodyduru.github.io/authentication/web-programming/2022/08/03/practical-oauth-part-one.html#user-authorization). The only difference between that url and the above  is the use of the ip address of the local computer.  
 
 After constructing the url, you can display it to the user in the terminal or open it directly in a browser. Most programming languages support opening directly in a browser.  In python, you can do this with the inbuilt [webbrowser](https://docs.python.org/library/webbrowser.html) module.  
 
