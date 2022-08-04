@@ -62,7 +62,7 @@ The client provides a link to the user with a URL whose structure looks like
 
 After the user clicks the link, an HTTP request is made to the **authorization server**. The server validates the `client_id` and the `redirect_uri`. If the validation succeeds, a form is displayed for the authenticated user to explicitly grant authorization to the client (unauthenticated users have to log in first). An error response is shown to the user if the validation fails.  
 
-A simple Django OAuth server with the following OAuth models  
+Here's a simple Django OAuth server with the following models  
 
 ```python
     class OAuth(models.Model):
@@ -79,6 +79,10 @@ A simple Django OAuth server with the following OAuth models
         expiry = models.DateTimeField()
         created_at = models.DateTimeField(auto_now_add=True)
 ```
+
+The `OAuth` table stores the different client applications that will require authorization from this provider. The `url` column stores the application urls. The `client_id` column stores the applications' client ids. The `client_secret` column stores the applications' client secrets.  
+
+The `Grant` table is an append-only table that stores authorization requests from the different applications. This table is only written to when the user grants authorization to the app. The main purpose of this table is to store the generated code in the `code` column for validation. This validation will be done in the access token request stage. The `client` column stores the id of the application making the request. The `user` column stores the id of the user granting the authorization request. The `code` column stores the generated code for this particular request. The `expiry` column stores the code expiry time, this is for security reasons. The structure of this table implies that a user can grant authorization to several applications authorization and an application can request authorization from several users.  
 
 A simple implementation of the `client_id` and `redirect_uri` validation is shown below  
 
@@ -112,7 +116,7 @@ A simple implementation of the `client_id` and `redirect_uri` validation is show
 The next stage is executed when the user grants authorization.  
 
 #### Authorization Server Sends Authorization Code
-The server generates an _authorization code_ and records it alongside the _client_ in its database/cache. It is recommended that this code should have an expiry time to prevent reuse in the future. This code and the `state` (originally sent by the client) are added as parameters to the `redirect_uri` provided by the client (either during the initial request or registration). This redirection URL will be similar to this structure `{redirect_uri}?code={authorization_code}&state={state}`.  
+The server generates an _authorization code_ and records it alongside the _client_ in its database/cache. It is recommended that this code should have an expiry time to prevent reuse by the same parties in the future. This code and the `state` (originally sent by the client) are added as parameters to the `redirect_uri` provided by the client (either during the initial request or registration). This redirection URL will be similar to this structure `{redirect_uri}?code={authorization_code}&state={state}`.  
 
 Using the example URL shown above, here is an example URL   
 
