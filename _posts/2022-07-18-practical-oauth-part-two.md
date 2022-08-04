@@ -7,7 +7,7 @@ categories: authentication web-programming terminal-app
 
 This is part two on how to write an OAuth client and server. If you have not read [Part One](https://goodyduru.github.io/authentication/web-programming/2022/08/03/practical-oauth-part-one.html) yet, you should take a look at it.  
 
-This post covers a lesser-known part of OAuth, which is console app authentication. You've probably seen it in action with the _gcloud_ and _heroku_ apps. Console app OAuth generally follows the same flow as that of a web app (auth code flow) with a few changes thrown in. I will explain how it works along with code examples.  The code is written in Python and was tested on the 3.10 version. You can find it [here](https://github.com/goodyduru/oauth-cmd).  
+This post covers a lesser-known part of OAuth, which is console-based app authentication. You've probably seen it in action with the _gcloud_ and _heroku_ apps. Console-based app OAuth generally follows the same flow as that of a web app (auth code flow) with a few changes thrown in. I will explain how it works along with code examples.  The code is written in Python and was tested on the 3.10 version. You can find it [here](https://github.com/goodyduru/oauth-cmd).  
 
 So here's how it works
 
@@ -19,7 +19,7 @@ For console-based apps, `127.0.0.1` or `localhost` will be the host component of
 The provider I used for this post (Github) does not need a port number during registration, but you can include it during the **User Authorization** step. This flexible port number requirement is dependent on the OAuth service you choose. When building an OAuth service, I recommend you have a flexible port number requirement to ease port number choice for apps that use your service.
 
 ### User Authorization
-Your app selects a port number to use. This port number can be a constant variable or selected on the fly. If your OAuth provider allows flexible port numbers on authorization, I recommend you select a random port number. In python, one way to do this is:
+Your app selects a port number to use. This port number can be a constant variable or selected on the fly. If your OAuth provider allows flexible port numbers on authorization, I recommend you select a random port number. In Python, one way to do this is:
 
 ```python
     import socket
@@ -37,7 +37,7 @@ The next is to construct a url that looks like this.
 
 I explained the different components of the url in [Part One](https://goodyduru.github.io/authentication/web-programming/2022/08/03/practical-oauth-part-one.html#user-authorization). The only difference between that url and the above  is the use of the ip address of the local computer.  
 
-After constructing the url, you can display it to the user in the terminal or open it directly in a browser. Most programming languages support opening directly in a browser.  In python, you can do this with the inbuilt [webbrowser](https://docs.python.org/library/webbrowser.html) module.  
+After constructing the url, you can display it to the user in the terminal or open it directly in a browser. Most programming languages support opening directly in a browser.  In Python, you can do this with the inbuilt [webbrowser](https://docs.python.org/library/webbrowser.html) module.  
 
 Here's a way to use it
 
@@ -59,7 +59,7 @@ When the user grants authentication to the app, the server will generate an auth
 
 After constructing the url, the server will redirect to it. One problem though, unlike the normal web app which is within the purview of the browser, this app is a terminal app and can't just be redirected to it. Luckily, there is a solution! The solution is for the app to listen on its selected port until it gets the redirection request. The server shouldn't run indefinitely else, it blocks. Once it receives the request, the server should close. Apart from allowing the rest of the code to execute, it also prevents subsequent, maybe harmful requests from coming in.  
 
-In python, you can accomplish this with the inbuilt [http.server](https://docs.python.org/3/library/http.server.html#module-http.server) module. Here's an example
+In Python, you can accomplish this with the inbuilt [http.server](https://docs.python.org/3/library/http.server.html#module-http.server) module. Here's an example
 
 ```python
     from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -86,7 +86,7 @@ After handling the redirection request, the `do_GET` function raises an exceptio
 ### App Requests Access Token
 The app sends a request for an access token from the authorization server using the `code` param value stored by its short-lived server along with its credentials generated at registration time (client_id and client_secret). This request is commonly sent as a POST request in JSON format.  
 
-Here's an example in python
+Here's an example in Python
 
 ```python
     def get_access_token():

@@ -9,7 +9,7 @@ OAuth (**O**pen **A**uthorization) is an open standard for access delegation, co
 
 This post tries to explain the workings behind the spec. The post is for those that are interested in the implementation of the standard. If you just want to include the different login/register buttons on your site, I'd advise that you use the relevant libraries from the identity providers you wish to use.  
 
-This article will consist of two parts. The first part will introduce OAuth and a browser-based implementation, the second will discuss the terminal app-based implementation.  
+This article will consist of two parts. The first part will introduce OAuth and a browser-based implementation, the [second](https://goodyduru.github.io/authentication/web-programming/terminal-app/2022/08/04/practical-oauth-part-two.html) will discuss the terminal app-based implementation.  
 
 The source code included in this article has been tested on Django 4.0.4.
 
@@ -242,7 +242,7 @@ In the above article and code, I left out PKCE short for Proof Key for Code Exch
 
 My basic OAuth implementation (server & client) can be found on [Github](https://github.com/goodyduru/django-oauth-experiments).  
 
-I will cover OAuth for a terminal-based app in Part Two.  
+I will cover OAuth for a terminal-based app in [Part Two](https://goodyduru.github.io/authentication/web-programming/terminal-app/2022/08/04/practical-oauth-part-two.html).  
 
 ### Additional Resources
 * The OAuth [spec](https://datatracker.ietf.org/doc/html/rfc6749) is a recommended read and this [section](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1) on Authorization Code is a compulsory read.
