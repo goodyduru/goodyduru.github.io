@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "IPC - Introduction"
-date: 2023-09-07
-categories: operating-systems
+date: 2023-09-08
+categories: os
 ---
 
 Have you ever thought of how two processes can communicate in one device? I guess you thought of **files<sup><a href="#footer-note-1">[1]</a></sup>** using the file I/O APIs, and yeah, that could work, but that would involve some level of complexity in being alerted when writing data into the monitored file. You could also have thought of **networks**, and that works too. But that will involve selecting ports and setting up all the network shenanigans. So We've eliminated file I/O and networks. How else can we make two processes communicate? Before we discuss the how, let's talk about the what. What does it mean for two processes to communicate? What is it called?
