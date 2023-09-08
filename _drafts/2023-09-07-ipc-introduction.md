@@ -5,7 +5,7 @@ date: 2023-09-07
 categories: operating-systems
 ---
 
-Have you ever thought of how two processes can communicate in one device? I guess you thought of **files<sup><a href="#footer-note-1">[1]</a></sup>** using the file I/O APIs, and yeah, that could work, but that would involve some level of complexity in being alerted when writing data into the monitored file. You could also have thought of **networks**, and that works too. But that will involve selecting ports and setting up all the network shenanigans. So We've eliminated file I/O and networks. How else can we make two processes communicate? Before we talk about the how, let's talk about the 'what'. What does it mean for two processes to communicate? What is it called?
+Have you ever thought of how two processes can communicate in one device? I guess you thought of **files<sup><a href="#footer-note-1">[1]</a></sup>** using the file I/O APIs, and yeah, that could work, but that would involve some level of complexity in being alerted when writing data into the monitored file. You could also have thought of **networks**, and that works too. But that will involve selecting ports and setting up all the network shenanigans. So We've eliminated file I/O and networks. How else can we make two processes communicate? Before we discuss the how, let's talk about the what. What does it mean for two processes to communicate? What is it called?
 
 It's called **Inter-Process Communication(IPC)**. You've probably come across this term before. If you have, maybe you've wondered about it or ignored it (I've been there). [Wikipedia](https://en.wikipedia.org/wiki/Inter-process_communication) defines IPC as "*the mechanisms provided by an operating system for processes to manage shared data*." That's pretty much it! This series of articles will talk about the different mechanisms provided by **Unix-based OSes**. Sorry Windows users! 
 
@@ -30,4 +30,6 @@ Files and TCP Sockets (which I call networks) are also IPC mechanisms, but I won
 
 The next article will be about Named Pipes. Till then, take care of yourself and stay hydrated! ✌🏾
 
-<div id="footer-note-1">[1] Yeah, I know that everything is a file in Unix. This is specifically talking about records stored in a disk and accessed by the <a href="https://www2.cs.uregina.ca/~hamilton/courses/330/notes/unix/filesyscalls.html">file system calls</a>. </div>
+***
+
+<div id="footer-note-1">[1] Yeah, I know that everything is a file in Unix. Here, we mean records stored in a disk and accessed by the <a href="https://www2.cs.uregina.ca/~hamilton/courses/330/notes/unix/filesyscalls.html">file system calls</a>. </div>
