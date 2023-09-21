@@ -62,6 +62,8 @@ Here's the client
 
 The named pipe is opened in write-only mode. It sends _ping_ a hundred times to the server using the named pipe called `/tmp/ping`. It signifies that it's done by sending _end_. When it's done, it closes the file. The write will blocked until there's at least one process that tries to read from the pipe.
 
+Note that data is sent as a byte string and not as a regular string.
+
 Here's the server
 
 ```python
@@ -80,6 +82,8 @@ Here's the server
 ```
 
 Here, a named pipe is created using the [`mkfifo()`](https://man7.org/linux/man-pages/man3/mkfifo.3.html) function. The file is opened in read-only mode. Data is read from the pipe and printed to console in a loop. The loop is ended when _end_ is sent. The file is closed and deleted. The read is blocked until there's data in the pipe.
+
+Note that data decoded to a utf-8 string, because it's originally received as a byte string.
 
 ### Performance
 Named pipes are pretty fast. [IPC-Bench](https://github.com/goldsborough/ipc-bench#benchmarked-on-intelr-coretm-i5-4590s-cpu--300ghz-running-ubuntu-20041-lts) was able to send 254,880 1KB messages per second on an Intel(R) Core(TM) i5-4590S CPU @ 3.00GHz running Ubuntu 20.04.1 LTS. That's fast enough to serve most processes' communication needs.
