@@ -16,7 +16,7 @@ Anonymous pipes are unidirectional, meaning you can only write to one end and re
 
 One important fact about an anonymous pipe is that **data is erased from the buffer once it's read**.
 
-Imagine you want two processes to communicate without using the shell. How will you do that with anonymous pipes? The simple answer is that you can't. When you call the `pipe()`, the kernel creates the buffer that only the **caller process and all its child processes know about**. No other process can reference that buffer. If you were to call the `pipe()` function in each application process, two separate pipe buffers would be created without any connection between them, defeating the purpose of your processes communicating. You might ask, how does the shell do it? Every process executed in your shell program is a child of that shell process. Remember what I said about how an anonymous pipe buffer created by a process can only be known by the creating application process and all its child processes :-). That's how your shell can get separate application processes to communicate.
+Imagine you want two processes to communicate without using the shell. How will you do that with anonymous pipes? The simple answer is that you can't. When you call the `pipe()`, the kernel creates the buffer that only the **caller process and all its child processes know about**. No other application process can reference that buffer. If you were to call the `pipe()` function in each application process, two separate pipe buffers would be created without any connection between them, defeating the purpose of your processes communicating. You might ask, how does the shell do it? Every process executed in your shell program is a child of that shell process. Remember what I said about how an anonymous pipe buffer created by a process can only be known by the creating application process and all its child processes :-). That's how your shell can get separate application processes to communicate.
 
 We've seen that as cool as anonymous pipes are, it has a limitation. That limitation is knowledge, not sharing. If one process were to know about another's pipe buffer, it could read and write to that buffer. But that knowledge is hidden by the kernel. It's isolation by obfuscation! What if we want other application processes to read our pipe buffer without sharing process ancestry? That's what Named Pipes are for!
 
@@ -83,7 +83,7 @@ Here's the server
         os.unlink(pipe_path)
 ```
 
-Here, the [`mkfifo()`](https://man7.org/linux/man-pages/man3/mkfifo.3.html) function creates a named pipe called `/tmp/ping`. It is opened in read-only mode. Data is read from the pipe buffer and printed to the console in a loop. The loop ends when the "end" message is received. The file is closed and deleted. Note that the read is blocked until there's data in the pipe.
+Here, the [`mkfifo()`](https://man7.org/linux/man-pages/man3/mkfifo.3.html) function creates a named pipe called `/tmp/ping`. After creation, the server opens it in read-only mode. Data is read from the pipe buffer and printed to the console in a loop. The loop ends when the "end" message is received. The file is closed and deleted. Note that the read is blocked until there's data in the pipe.
 
 Note that data has to be decoded to a utf-8 string because it's originally received as a byte string.
 
@@ -94,6 +94,6 @@ Named pipes are pretty fast. [IPC-Bench](https://github.com/goldsborough/ipc-ben
 You can find my code that demonstrates unidirectional and bidirectional communication using Named Pipes on [GitHub](https://github.com/goodyduru/ipc-demos).
 
 ### Conclusion
-Named Pipes is a simple and powerful IPC mechanism. As with all powerful tools, you have to use it with caution. I wouldn't recommend using it for bi-directional communication, unless you aren't worried about losing data.
+Named Pipes is a simple and powerful IPC mechanism. As with all powerful tools, you have to use it with caution. I wouldn't recommend using it for bi-directional communication unless you aren't worried about losing data.
 
 This article was filesystem-related. The next one will be networking-related :-). I'm referring to Unix Domain Sockets. Till then, take care of yourself and stay hydrated! ✌🏾
