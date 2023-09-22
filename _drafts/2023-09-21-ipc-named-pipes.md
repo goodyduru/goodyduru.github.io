@@ -16,7 +16,7 @@ Anonymous pipes are unidirectional, meaning you can only write to one end and re
 
 One important fact about an anonymous pipe is that **data is erased from the buffer once it's read**.
 
-Imagine you want two processes to communicate without using the shell. How will you do that with anonymous pipes? The simple answer is that you can't. When you call the `pipe()`, the kernel creates the buffer that only the **caller process and all its child processes know about**. No other application process can reference that buffer. If you were to call the `pipe()` function in each application process, two separate pipe buffers would be created without any connection between them, defeating the purpose of your processes communicating. You might ask, how does the shell do it? Every process executed in your shell program is a child of that shell process. Remember what I said about how an anonymous pipe buffer created by a process can only be known by the creating application process and all its child processes :-). That's how your shell can get separate application processes to communicate.
+Imagine you want two processes to communicate without using the shell. How will you do that with anonymous pipes? The simple answer is that you can't. When you call the `pipe()` function, the kernel creates the buffer that only the **caller process and all its child processes know about**. No other application process can reference that buffer. If you were to call the `pipe()` function in each application process, two separate pipe buffers would be created without any connection between them, defeating the purpose of your processes communicating. You might ask, how does the shell do it? Every process executed in your shell program is a child of that shell process. Remember what I said about how an anonymous pipe buffer created by a process can only be known by the creating application process and all its child processes :-). That's how your shell can get separate application processes to communicate.
 
 We've seen that as cool as anonymous pipes are, it has a limitation. That limitation is knowledge, not sharing. If one process were to know about another's pipe buffer, it could read and write to that buffer. But that knowledge is hidden by the kernel. It's isolation by obfuscation! What if we want other application processes to read our pipe buffer without sharing process ancestry? That's what Named Pipes are for!
 
@@ -26,7 +26,7 @@ In computing, creating a reference is the first step in allowing access to data.
     mkfifo example-pipes
     ls -l 
 
-The [`mkfifo`](https://man7.org/linux/man-pages/man1/mkfifo.1.html) command creates a named pipe called _example-pipes_. Your output should be similar to this
+The [`mkfifo`](https://man7.org/linux/man-pages/man1/mkfifo.1.html) command creates a named pipe called _example-pipes_; Your output should be similar to this:
 
     prw-r--r--  1 user  group    0 Sep 21 16:36 example-pipes
 
@@ -38,10 +38,10 @@ The difference between a regular file and a FIFO file is that it can never conta
 
 One important detail about named pipes is no bytes are written to a named pipe buffer until there is at least one concurrent reader.
 
-Named pipes can be bidirectional. An application process can read from it and write to it with a single file descriptor. Once it has the correct permissions, all it has to do is open it using its name in `O_RDWR` mode. This is tricky because a process can immediately read what it has written, causing the written data not to be visible to other application processes.
+Named pipes can be bidirectional. An application process can read from it and write to it with a single file descriptor. Once an application process has the correct permissions to open a named pipe, all it has to do is open the named pipe using its name in `O_RDWR` mode. This is tricky because a process can immediately read what it has written, causing the written data not to be visible to other application processes.
 
 ### Show me the code
-Our example will demonstrate two Python processes, a server and a client. The client will send a "ping" message to the server, and the server will print it out.
+Our example will demonstrate two Python processes; a server and a client. The client will send a "ping" message to the server, and the server will print it out.
 
 Here's the client
 
@@ -64,7 +64,7 @@ Here's the client
 
 The client opens the named pipe referenced by the name `/tmp/ping` in write-only mode. It sends a "ping" message a hundred times to the server using the named pipe. It signifies that it's finished by sending "end". Once it's finished sending, it closes the file. The write will block until at least one other process tries to read from the pipe.
 
-Note that data is sent as a byte string and not as a regular string.
+Note that data is sent as a byte string, not as a regular string.
 
 Here's the server
 
