@@ -5,7 +5,7 @@ date: 2023-09-21
 categories: os 
 ---
 
-In the previous article, we talked about what IPC is and listed its different mechanisms. This article will describe one of them. This will be about Named Pipes or FIFO file!
+In the previous article, we talked about what IPC is and listed its different mechanisms. We'll start with one, Named Pipes or FIFO file!
 
 Named pipes are a mechanism that builds upon the structure of anonymous pipes. Anonymous pipes are what we normally call Unix pipes. To understand named pipes, we need to understand anonymous pipes. 
 
@@ -16,9 +16,9 @@ Anonymous pipes are uni-directional i.e you can only write to one end, and read 
 
 One important fact about an anonymous pipe is that *once data is read from the buffer, it is erased from the buffer*.
 
-Imagine you have 2 processes and you want them to communicate without using the shell, how will you do that with anonymous pipes? The simple answer is that you can't. When you call the `pipe()`, the kernel creates the buffer than only that *process and its children knows about*. No other process can reference that buffer. If you were to use the function in each process, two separate buffers will be created without any connection between them. This defeats the purpose of your processes communicating. You might ask, how does the shell do it? Well, every process that is executed in your shell is a child of that shell process. Remember what was said about how a pipe buffer can only be known by the creating process and all its children :-). That's how your shell is able to get the separate processes to communicate. In addition, the shell executes I/O redirection too, but that is not our focus here.
+Imagine you have 2 processes and you want them to communicate without using the shell, how will you do that with anonymous pipes? The simple answer is that you can't. When you call the `pipe()`, the kernel creates the buffer than only that *process and its child processes knows about*. No other process can reference that buffer. If you were to call the `pipe()` function in each process, two separate buffers will be created without any connection between them. This defeats the purpose of your processes communicating. You might ask, how does the shell do it? Well, every process that is executed in your shell is a child of that shell process. Remember what was said about how a pipe buffer can only be known by the creating process and all its child processes :-). That's how your shell is able to get the separate processes to communicate.
 
-We've seen that as cool as anonymous pipes are, there is a major limitation. That limitation is knowledge, not sharing. If one process were to know about another's pipe buffer, it could read and write to that buffer. But, that knowledge is hidden by the kernel. It's isolation by obfuscation! What if we want our process's pipe buffer to be read by other processes without sharing process ancestry. That's what Named Pipes are for!
+We've seen that as cool as anonymous pipes are, there is a major limitation. That limitation is knowledge, not sharing. If one process were to know about another's pipe buffer, it could read and write to that buffer. But, that knowledge is hidden by the kernel. It's isolation by obfuscation! What if we want our process's pipe buffer to be read by other processes without sharing process ancestry? That's what Named Pipes are for!
 
 ### Named Pipes
 In computing, the first step of allowing access to data stored somewhere is done by creating a reference. That is what Named pipes are, Anonymous pipes plus reference. This reference is simply a file name. This file name is actually stored on disk by your filesystem, and will show up as a file in your explorer. We can test this out by running these commands in your shell.
@@ -26,7 +26,7 @@ In computing, the first step of allowing access to data stored somewhere is done
     mkfifo example-pipes
     ls -l 
 
-The [`mkfifo`](https://man7.org/linux/man-pages/man1/mkfifo.1.html) creates a named pipe called _example-pipes_. Your output should be similar to this
+The [`mkfifo`](https://man7.org/linux/man-pages/man1/mkfifo.1.html) command creates a named pipe called _example-pipes_. Your output should be similar to this
 
     prw-r--r--  1 user  group    0 Sep 21 16:36 example-pipes
 
@@ -60,7 +60,7 @@ Here's the client
         os.close(fd)
 ```
 
-The named pipe is opened in write-only mode. It sends _ping_ a hundred times to the server using the named pipe called `/tmp/ping`. It signifies that it's done by sending _end_. When it's done, it closes the file. The write will blocked until there's at least one process that tries to read from the pipe.
+The named pipe is opened in write-only mode. It sends _ping_ a hundred times to the server using the named pipe called `/tmp/ping`. It signifies that it's done by sending _end_. When it's done, it closes the file. The write will block until there's at least one process that tries to read from the pipe.
 
 Note that data is sent as a byte string and not as a regular string.
 
@@ -83,15 +83,15 @@ Here's the server
 
 Here, a named pipe is created using the [`mkfifo()`](https://man7.org/linux/man-pages/man3/mkfifo.3.html) function. The file is opened in read-only mode. Data is read from the pipe and printed to console in a loop. The loop is ended when _end_ is sent. The file is closed and deleted. The read is blocked until there's data in the pipe.
 
-Note that data decoded to a utf-8 string, because it's originally received as a byte string.
+Note that data has to be decoded to a utf-8 string, because it's originally received as a byte string.
 
 ### Performance
 Named pipes are pretty fast. [IPC-Bench](https://github.com/goldsborough/ipc-bench#benchmarked-on-intelr-coretm-i5-4590s-cpu--300ghz-running-ubuntu-20041-lts) was able to send 254,880 1KB messages per second on an Intel(R) Core(TM) i5-4590S CPU @ 3.00GHz running Ubuntu 20.04.1 LTS. That's fast enough to serve most processes' communication needs.
 
 ### Demo Code
-I have written code that demonstrates unidirectional and bidirectional communication in Python and C [here](https://github.com/goodyduru/ipc-demos).
+You can find my code that demonstrates unidirectional and bidirectional communication on [Github](https://github.com/goodyduru/ipc-demos).
 
 ### Conclusion
-Named Pipes is a really simple and powerful IPC mechanism. As with all powerful tools, you have to use this with caution. I wouldn't recommend using it for bi-directional communication, unless you aren't worried about losing data.
+Named Pipes is a really simple and powerful IPC mechanism. As with all powerful tools, you have to use it with caution. I wouldn't recommend using it for bi-directional communication, unless you aren't worried about losing data.
 
 This article was filesystem related, the next will be networking related :-). I'm referring to Unix Domain Sockets. Till then, take care of yourself and stay hydrated! ✌🏾
