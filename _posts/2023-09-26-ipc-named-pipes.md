@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "IPC - Named Pipes"
-date: 2023-09-21
+date: 2023-09-26
 categories: os 
 ---
 
@@ -26,7 +26,7 @@ In computing, creating a reference is the first step in allowing access to data.
     mkfifo example-pipes
     ls -l 
 
-The [`mkfifo`](https://man7.org/linux/man-pages/man1/mkfifo.1.html) command creates a named pipe called _example-pipes_; Your output should be similar to this:
+The [`mkfifo`](https://man7.org/linux/man-pages/man1/mkfifo.1.html) command<sup><a href="#footer-note-1">[1]</a></sup> creates a named pipe called _example-pipes_; Your output should be similar to this:
 
     prw-r--r--  1 user  group    0 Sep 21 16:36 example-pipes
 
@@ -97,3 +97,7 @@ You can find my code that demonstrates unidirectional and bidirectional communic
 Named Pipes is a simple and powerful IPC mechanism. As with all powerful tools, you have to use it with caution. I wouldn't recommend using it for bi-directional communication unless you aren't worried about losing data.
 
 This article was filesystem-related. The next one will be networking-related :-). I'm referring to Unix Domain Sockets. Till then, take care of yourself and stay hydrated! ✌🏾
+
+***
+
+<div id="footer-note-1">[1] The <a href="https://man7.org/linux/man-pages/man1/mknod.1.html">mknod -p</a> command can create a FIFO file too! </div>
