@@ -34,7 +34,7 @@ In addition to being used for the internet, the BSD Sockets API can be used for 
 We won't talk about functions like [`getaddrinfo()`](https://man7.org/linux/man-pages/man3/getaddrinfo.3.html), [`freeaddrinfo()`](https://man7.org/linux/man-pages/man3/getaddrinfo.3.html), and others because they aren't necessary for IPC. You can learn more about them over on Beej's excellent [guide to networking](https://beej.us/guide/bgnet/html/).
 
 ### Unix Domain Sockets
-Sorry it took so long to get here, had to give context :-). Unix Domain Sockets which I'll call UDS from here on is simply IPC over sockets. When two application processes communicate over UDS, they are communicating over the same buffer referenced by different sockets in the different applications. This buffer is set up by the OS when connection is made between the two processes.
+Sorry it took so long to get here, had to give context :-). Unix Domain Sockets which I'll call UDS from here on is simply IPC over sockets. When two application processes communicate over UDS, they are communicating using the buffers allocated to each sockets. These buffers are set up by the OS when the sockets are created.
 
 The referencing socket on the client side is created by calling the `socket()` function. The referencing socket on the server side is created when it `accept()` a connection. The socket created by calling the `socket()` function on the server side is **never** used for data transfer. It is only used for listening to incoming connections. 
 
@@ -46,7 +46,7 @@ The `s` in the first column stands for _socket_. An important fact about a socke
 
 An advantage of using a file as a reference is Unix file access rights and authorization can be applied to the file. You don't have to create an authentication and authorization over UDS to provide security.  You can just use the OS file permissions for security.
 
-The buffer set up by the OS is bidirectional meaning both peers can read and write to it. In addition, this buffer is only used between one client and one server. It is possible for a server to be simultaneously connected to multiple clients. Conversely, it is possible for a client to be simultaneously connected with multiple servers. Each connection has its own buffer. For example, a server communicating with five clients will transfer data over five separate buffers. An advantage of this is synchronization is provided by the OS when using UDS unlike some other IPC mechanisms where you need to provide synchronization.
+Each peer sockets have a read and write buffer. Message sent from one socket is copied from the write buffer of the sending socket to the read buffer of the receiving buffer. This implies that UDS is a bidirectional IPC mechanism; meaning each peer can read and write messages. An advantage of this setup is that a client process can be connected to multiple processes at the same time and a server process can be connected to by multiple processes at the same time without application-level synchronization. The OS provides this synchronization for free unlike some other IPC mechanisms!
 
 ### Show me the code
 Our example will demonstrate two Python processes; a server and a client. The client will send a "ping" message to the server, and the server will print it out.
