@@ -46,7 +46,7 @@ The `s` in the first column stands for _socket_. An important fact about a socke
 
 An advantage of using a file as a reference is Unix file access rights and authorization applies to the file. You don't have to create an authentication and authorization over UDS to provide security. You can use the OS file permissions for security.
 
-Each peer socket has a read and write buffer. Message sent from one socket, is copied from the write buffer of the sending socket to the read buffer of the receiving buffer. It implies that UDS is a bidirectional IPC mechanism, meaning each peer can read and write messages. An advantage of this setup is that a process can connect and communicate with multiple application processes simultaneously without application-level synchronization. The OS provides this synchronization for free, unlike some other IPC mechanisms!
+Each peer socket has a read and write buffer. Message sent from one socket is copied from the write buffer of the sending socket to the read buffer of the receiving buffer. It implies that UDS is a bidirectional IPC mechanism, meaning each peer can read and write messages. An advantage of this setup is that a process can connect and communicate with multiple application processes simultaneously without application-level synchronization. The OS provides this synchronization for free, unlike some other IPC mechanisms!
 
 ### Show me the code
 Our example will demonstrate two Python processes, a server and a client. The client will send a "ping" message to the server, and the server will print it out.
@@ -79,9 +79,9 @@ Here's the client
 
 The client process creates a socket object called `sock`. The socket family, which is the first parameter of the `socket()` function is set to `AF_UNIX` for the OS to create a UDS socket. Other families are `AF_INET` and `AF_INET6` for IPv4 and IPv6 communication used for internet communication.  The socket type(second parameter) is set to `SOCK_STREAM`; this guarantees reliable and two-way communication. This type is also used to specify **TCP** protocol for internet communication. Other types are `SOCK_DGRAM` for UDP and `SOCK_RAW` for raw sockets. 
 
-After the socket object is created by the OS, the client process connects to the server using the file name provided as a reference (_udsocket_ in the code) by calling the `connect()` method. Once the connection is successfully, it sends and receives a reply from the server a hundred times using the `sendall` and `recv` methods. Note that this data is a Python byte string and must be encoded and decoded. 
+After the socket object is created by the OS, the client process connects to the server using the file name provided as a reference (_udsocket_ in the code) by calling the `connect()` method. Once the connection is successful, it sends and receives a reply from the server a hundred times using the `sendall` and `recv` methods. Note that this data is a Python byte string and must be encoded and decoded. 
 
-After the loop ends, an "end" message is sent to the server process signify the conclusion of the transfer. The connection is closed using the `close()` method.
+After the loop ends, an "end" message is sent to the server process to signify the conclusion of the transfer. The connection is closed using the `close()` method.
 
 Here's the server code
 
