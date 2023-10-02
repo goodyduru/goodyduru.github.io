@@ -121,7 +121,7 @@ Here's the server code
                 connection.close()
 ```
 
-The server process first deletes the socket file to prevent an "Address already in use" error (We can avoid this by setting _SO_REUSEADDR_ in the socket options). It creates a server socket object using the same function call and parameters as the client process. The socket is then bound to the socket file by calling the `bind()` method. After which, it is then set to listening mode using the `listen()` method.
+The server process first deletes the socket file to prevent an "Address already in use" error. It creates a server socket object using the same function call and parameters as the client process. The socket is then bound to the socket file by calling the `bind()` method. After which, it is then set to listening mode using the `listen()` method.
 
 The server then runs a loop; inside this loop, incoming connections are accepted using the `accept()` method. This method returns a new socket object and an address. Data transfer will use this new socket. Once this accepted connection is successful, an inner loop starts running where a message is received using the `recv()` method and checked. If it is "ping", it replies with a "pong" message sent using the `sendall()` method.  If it isn't "ping", the inner loop is ended, and the connection socket is closed.
 
