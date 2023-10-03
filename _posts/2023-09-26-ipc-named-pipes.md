@@ -96,7 +96,7 @@ You can find my code that demonstrates unidirectional and bidirectional communic
 ### Conclusion
 Named Pipes is a simple and powerful IPC mechanism. As with all powerful tools, you have to use it with caution. I wouldn't recommend using it for bi-directional communication unless you aren't worried about losing data.
 
-This article was filesystem-related. The next one will be networking-related :-). I'm referring to Unix Domain Sockets. Till then, take care of yourself and stay hydrated! ✌🏾
+This article was filesystem-related. The next one will be networking-related :-). I'm referring to [Unix Domain Sockets](https://goodyduru.github.io/os/2023/10/03/ipc-unix-domain-sockets.html). Till then, take care of yourself and stay hydrated! ✌🏾
 
 ***
 

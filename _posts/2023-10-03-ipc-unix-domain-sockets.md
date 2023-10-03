@@ -10,7 +10,7 @@ In the previous article, We discussed the [Named Pipes](https://goodyduru.github
 Sockets are the Unix abstraction of networking. When we think of networking, we imagine communication. The tools that make up the internet are majorly concerned with creating and maintaining communication pipes between computers. Our Operating Systems provide some of these tools. Since these are communication tools, what if we could use a few of these high-quality and reliable tools provided by our Operating Systems to enable processes to chat with each other? Good news! It turns out that it exists, and that's the subject of this article.
 
 ### A Quick Networking Primer
-Before we discuss Unix Domain Socket, let's talk about networking quickly. I can assume that we are familiar with the OSI networking layers. I won't list all the layers here because some aren't needed. The layers that are useful for communication are physical, link, network, transport, and application.
+Before we discuss Unix Domain Socket, let's talk about networking quickly. I can assume that we are familiar with the OSI networking layers. The main layers are physical, link, network, transport, and application.
 
 The physical layer (optic fiber, 4G, 5G, and others) is concerned with sending our data via a physical medium like radio waves and light. The link layer (Ethernet, WiFi, and others) transfers data between networks. The network layer (BGP, ICMP, and others) is concerned with routing data through the most efficient path. The transport layer (TCP, UDP, and others) transfers data to the **correct application process** on the right computer. The application layer (SMTP, HTTP, ten thousand other protocols) handles the interaction between the user and the data.
 
@@ -44,7 +44,7 @@ An application process that wants other processes to connect to it needs a refer
 
 The `s` in the first column stands for _socket_. An important fact about a socket file is that using the `open()` function to access the file will return an error. A consequence of this is almost all application programs are unable to open the file.
 
-An advantage of using a file as a reference is Unix file access rights and authorization applies to the file. You don't have to create an authentication and authorization over UDS to provide security. You can use the OS file permissions for security.
+An advantage of using a file as a reference is Unix file access rights and authorization applies to the file. You don't have to add an authentication and authorization layer to UDS to provide security. You can use the OS file permissions for security.
 
 Each peer socket has a read and write buffer. Message sent from one socket is copied from the write buffer of the sending socket to the read buffer of the receiving buffer. It implies that UDS is a bidirectional IPC mechanism, meaning each peer can read and write messages. An advantage of this setup is that a process can connect and communicate with multiple application processes simultaneously without application-level synchronization. The OS provides this synchronization for free, unlike some other IPC mechanisms!
 
