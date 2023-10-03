@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "IPC - Named Pipes"
-date: 2023-09-26
+title: "IPC - Unix Domain Sockets"
+date: 2023-10-03
 categories: os
 ---
 
