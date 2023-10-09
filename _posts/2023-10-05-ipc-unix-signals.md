@@ -227,18 +227,20 @@ You'll notice that both programs set the pid parameter of `os.kill` to 0. This w
 We use the trap instruction to handle all the signals sent by both Python processes. This is because `kill(0, sig)` sends a signal to all the processes in a process group, and the shell process is in the same process group with its default handler(termination). We don't want that, and that's why we handle them with an empty statement.
 
 ### Performance
-Signals are plenty fast. [Cloudflare](https://blog.cloudflare.com/scalable-machine-learning-at-cloudflare/#ipc-mechanisms) benchmarked 	404,844 messages per second<sup><a href="#footer-note-2">[2]</a></sup. That can suit most performance needs.
+Signals are plenty fast. [Cloudflare](https://blog.cloudflare.com/scalable-machine-learning-at-cloudflare/#ipc-mechanisms) benchmarked 	404,844 messages per second<sup><a href="#footer-note-2">[2]</a></sup>. That can suit most performance needs.
 
 ### Demo Code
 You can find my code on UDS on [GitHub](https://github.com/goodyduru/ipc-demos).
 
 ### Conclusion
-Unix signals are a straightforward but limited mechanism for IPC. They can do much more than IPC, e.g. set alarms, handling errors. You have to be careful about how you use it!
+Unix signals are a straightforward but limited mechanism for IPC. They can do much more than IPC, e.g. set alarms, handling errors. There are some issues in using it, so be cautious.
 
 The next article will cover a mechanism I didn't know existed until recently called Message Queues. Till then, take care of yourself and stay hydrated! ✌🏾
 
 ***
 
 <div id="footer-note-1">[1] It is possible for pids to hit the maximum limit during uptime, thus causing a wrap around to a smaller <a href="https://superuser.com/a/135008">value</a>. Some Unix-based OSes give you the ability to enable <a href="https://security.stackexchange.com/a/89961">random PID generation</a>  </div>
+
+***
 
 <div id="footer-note-2">[2] The table shows performance for sending 1KB messages. This is misleading for Signals. No data is sent via this mechanism. </div>
