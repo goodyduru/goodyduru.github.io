@@ -23,7 +23,7 @@ The above command will print out all the processes that have controlling termina
     15468 ttys056    0:00.33 /bin/zsh -il
     16837 ttys056    0:00.00 sleep 2000
 
-The above [output](https://www.man7.org/linux/man-pages/man1/ps.1.html) lists the pids, terminal type, CPU time, and the process command with its arguments. The _pid_ is what we are mainly concerned about. Whenever we start a process, it is given a unique _pid_ by the OS. A new _pid_ is always more than the previously assigned _pid_ **during an OS uptime<sup><a href="#footer-note-1">[1]</a></sup>**. In database terminology, _pid_ is akin to the PRIMARY KEY for processes.
+The above [output](https://www.man7.org/linux/man-pages/man1/ps.1.html) lists the pids, terminal type, CPU time, and the process command with its arguments. The _pid_ is what we are mainly concerned about. Whenever we start a process, it is given a unique _pid_ by the OS. Most times, a new _pid_ is more than the previously assigned _pid_ **during an OS uptime<sup><a href="#footer-note-1">[1]</a></sup>**. In database terminology, _pid_ is akin to the PRIMARY KEY for processes.
 
 Now that we know about _pids_, let's talk about [process group](https://en.wikipedia.org/wiki/Process_group). According to Wikipedia, a process group is a collection of one or more processes. Every process belongs to a process group, and every process group has an id called _pgid_. By default, the `ps` command does not display the _pgid_ of a process. But, we can include it in the `ps` output by typing the command `ps -o "pid,tty,time,command,pgid"`. Here's my terminal output:
 
@@ -227,7 +227,7 @@ You'll notice that both programs set the pid parameter of `os.kill` to 0. This w
 We use the trap instruction to handle all the signals sent by both Python processes. This is because `kill(0, sig)` sends a signal to all the processes in a process group, and the shell process is in the same process group with its default handler(termination). We don't want that, and that's why we handle them with an empty statement.
 
 ### Performance
-Signals are plenty fast. [Cloudflare](https://blog.cloudflare.com/scalable-machine-learning-at-cloudflare/#ipc-mechanisms) benchmarked 	404,844 1KB messages per second. That can suit most performance needs.
+Signals are plenty fast. [Cloudflare](https://blog.cloudflare.com/scalable-machine-learning-at-cloudflare/#ipc-mechanisms) benchmarked 	404,844 messages per second<sup><a href="#footer-note-2">[2]</a></sup. That can suit most performance needs.
 
 ### Demo Code
 You can find my code on UDS on [GitHub](https://github.com/goodyduru/ipc-demos).
@@ -236,3 +236,9 @@ You can find my code on UDS on [GitHub](https://github.com/goodyduru/ipc-demos).
 Unix signals are a straightforward but limited mechanism for IPC. They can do much more than IPC, e.g. set alarms, handling errors. You have to be careful about how you use it!
 
 The next article will cover a mechanism I didn't know existed until recently called Message Queues. Till then, take care of yourself and stay hydrated! ✌🏾
+
+***
+
+<div id="footer-note-1">[1] It is possible for pids to hit the maximum limit during uptime, thus causing a wrap around to a smaller <a href="https://superuser.com/a/135008">value</a>. Some Unix-based OSes give you the ability to enable <a href="https://security.stackexchange.com/a/89961">random PID generation</a>  </div>
+
+<div id="footer-note-2">[2] The table shows performance for sending 1KB messages. This is misleading for Signals. No data is sent via this mechanism. </div>
