@@ -112,20 +112,20 @@ You can see that for every one of the sleep processes, its reason for being kill
 
 One more thing. You can replace those prefixed numbers with prefixed strings. These strings are unique and are understood by the kill command. Each string value is mapped to a number, so running `kill -special_string pid` is the same as running `kill -special_number pid`. For example, `kill -fpe pid` is the equivalent of `kill -8 pid`. They will both result in a _floating point exception_, resulting in the termination of the process. 
 
-By now, I bet you're curious about what those prefixed numbers or strings represent. Don't worry, I've got you :-). They are called **signals**.
+By now, I bet you're curious about what those prefixed numbers or strings represent. Don't worry, I've got you :-). They are called **signals**. Let's dive into them.
 
 ### Signals
-Signals are simply standardized messages that are sent to a process by the Operating System. These messages are very limited in number and are defined in every modern POSIX-compliant system. Some OS might have more and some less, but some universal ones that are on all UNIX-based OS. Here's a list of them and their meaning on [Wikipedia](https://en.wikipedia.org/wiki/Signal_(IPC)#POSIX_signals).
+Signals are standardized messages sent to a process by the Operating System. These messages are very limited in number and are defined in every modern POSIX-compliant system. Some OS might have more and some less, but some universal ones that are on all UNIX-based OS. Here's a list of them and their meaning on [Wikipedia](https://en.wikipedia.org/wiki/Signal_(IPC)#POSIX_signals).
 
-These messages have a very high priority and thus, the process must be interrupted from its normal flow to handle it. The reason why they have high priority is because lots of process errors are delivered to a process using signals. For example, you can see from the `kill` output above that some of the reasons look like error messages, even though the process didn't have an error.
+These messages have a high priority, and thus, the process must be interrupted from its normal flow to handle it. The main reason why they have high priority is because lots of process errors are delivered to a process using signals. For example, you can see from the `kill` output above that some reasons look like error messages, even though the process didn't have an error.
 
-Now, I know of 2 ways by which a signal can be sent to a process. They are [`raise`](https://man7.org/linux/man-pages/man3/raise.3.html) function and `kill` command/syscall. There might be other ways, but I'm ignorant about them. The `raise` function is just a process sending a signal to itself. We've looked at the `kill` command, I'll talk about its equivalent function soon. The OS kernel may also send a signal by manipulating the process [struct directly](https://github.com/torvalds/linux/blob/7de25c855b63453826ef678420831f98331d85fd/kernel/signal.c#L1722).
+Now, I know 2 ways a signal can be sent to a process. They are [`raise`](https://man7.org/linux/man-pages/man3/raise.3.html) function and `kill` command/syscall. There might be other ways, but I'm ignorant about them. The `raise` function is just a process sending a signal to itself. We've looked at the `kill` command, and I'll talk about its equivalent syscall function soon. The OS kernel may also send a signal by manipulating the process [struct directly](https://github.com/torvalds/linux/blob/7de25c855b63453826ef678420831f98331d85fd/kernel/signal.c#L1722).
 
-Every signal must have a handler function in a process. This function is executed whenever the process receives the signal. The function can be defined in kernel or user-level code. When the OS starts a new process, it assigns default handlers for every signal in that process. Some signals' default handlers just terminate the process. Some other default handlers don't execute anything, i.e. the signal is ignored. A signal's default handler can be referenced with the constant `SIG_DFL`. You can see a list of default actions for signals [here](https://elixir.bootlin.com/linux/latest/source/include/linux/signal.h#L352).
+Every signal must have a handler function in a process. This function is executed whenever the process receives the signal. The function can be defined in kernel or user-level code. When the OS starts a new application process, it assigns default handlers for every of its signal objects. Some signals' default handlers terminate the process. Some other default handlers don't execute anything, i.e. the signal is ignored. A signal's default handler can be referenced with the constant `SIG_DFL`. You can see a list of default signals' actions [here](https://elixir.bootlin.com/linux/latest/source/include/linux/signal.h#L352).
 
-A signal default handler can be changed to a different handler. This handler can be a defined function or `SIG_IGN`. `SIG_IGN` tells the process to ignore the signal. We set a signal handler by using either the [`signal()`](https://man7.org/linux/man-pages/man2/signal.2.html) or [`sigaction`](https://man7.org/linux/man-pages/man2/sigaction.2.html) functions. It's also possible that we might want to handle the signal once and then reset the default handler. We can do this by setting the signal's handler function to `SIG_DFL` inside our defined handler.
+A signal default handler can be changed to a different handler. This handler can be a defined function or `SIG_IGN`. `SIG_IGN` tells the process to ignore the signal. We set a signal handler by using either the [`signal()`](https://man7.org/linux/man-pages/man2/signal.2.html) or [`sigaction`](https://man7.org/linux/man-pages/man2/sigaction.2.html) functions. We might want to handle a signal once and reset the default handler immediately after. We can do this by setting the signal's handler function to `SIG_DFL` inside our defined handler.
 
-Enough talk, let's demonstrate a very simple example. Here's a simple Python script that executes an infinite loop:
+Enough talk; let's demonstrate a simple example. Here's a simple Python script that executes an infinite loop:
 
 ```python
     import signal
@@ -141,22 +141,22 @@ Enough talk, let's demonstrate a very simple example. Here's a simple Python scr
     run()
 ```
 
-Run this script in a terminal. Open another terminal and look up the pid of the script process using `ps`. Run `kill -8 script_pid` or `kill -fpe script_pid` in the terminal. Now, go to the terminal running the script process, you should see the "You can't kill me, I'm bulletproof" printed in the console. What happened is that we've replaced the default handler with the `fpe_bulletproof` function. Every time you run the `kill -8 ...` command, the function is executed, and the statement is printed to your terminal console. Now try to run `kill -1 script_pid`, you will see that the script has been terminated. This is because we only set a handler for `SIGFPE` and not for others. 
+Run this script in a terminal. Open a second terminal and look up the pid of the script process using `ps`. Run `kill -8 script_pid` or `kill -fpe script_pid` in the second terminal. Now, go to the first terminal running the script process; you should see the "You can't kill me, I'm bulletproof" printed in the console. What happened is that we've replaced the default handler with the `fpe_bulletproof` function. Every time you run the `kill -8 ...` command, the handler function is executed, and the statement is printed to your terminal console. Now try to run `kill -1 script_pid`, you will see that the script has been terminated. This is due to only setting a handler for `SIGFPE` and not the other signals. 
 
-Note that the handler function must have two parameters, the signum and a frame.
+Note that the handler function must have two parameters: the signum and a frame.
 
-Almost all of the signals' handlers can be changed, except for `SIGKILL` and `SIGSTOP` signals. These signals cannot be stopped or ignored. You can try this by changing `SIGFPE` to `SIGKILL` and then rerun the script. An "Invalid Argument" exception is thrown. This is why when you want to force kill a process from the terminal, you type `kill -9 process_pid`. The _9_ represents the `SIGKILL` signal.
+The handlers for almost all signals can be changed, except for `SIGKILL` and `SIGSTOP` signals. These signals cannot be stopped or ignored. You can try this by changing `SIGFPE` to `SIGKILL` and then rerun the script. An "Invalid Argument" exception is thrown. This is why when you want to force-kill a process from the terminal, you type `kill -9 process_pid`. The _9_ represents the `SIGKILL` signal.
 
 A note of warning, you have to be careful of what is executed inside your handler function. Functions called directly and indirectly by your handler function have to be async-safe. Calling async-unsafe functions in your handler function can invoke undefined behavior. A list of async-safe functions can be found [here](https://man7.org/linux/man-pages/man7/signal-safety.7.html).
 
 ### How does this concern IPC?
-I know, I know. How does this all concern IPC? Here's how, whenever the `kill pid` is run in a terminal, a `kill` process is started. This process sends a signal to the process whose pid is included in the command argument. If you squint a little hard, that looks like the `kill` process is communicating with the other process. Isn't that Inter-process communication? Can we have the power that `kill` has?
+I know, I know. How does this all concern IPC? Here's how, whenever the `kill pid` is run in a terminal, a `kill` process is started. This process sends a signal to the process whose pid is included in the command argument. If you squint a little, it looks like the `kill` process sent a message to the other process. Isn't that Inter-process communication? Can we have the power that `kill` has?
 
-Luckily for us, yeah we can do what kill does. That's because the `kill` process calls the [`kill()`](https://man7.org/linux/man-pages/man2/kill.2.html) system call. We can send a signal to another process by executing the syscall with its `pid` and the signal. 
+Luckily for us, we can do what kill does. That's because the `kill` process calls the [`kill()`](https://man7.org/linux/man-pages/man2/kill.2.html) system call. We can send a message to another application process by executing the syscall with its _pid_ and a signal.
 
-Carrying out uni-directional communication from one independent process to another is easy when using `kill()`. All we have to do is run the recipient process, get its pid, and then run the sending process with the pid. Letting both processes know each other pids requires other IPC mechanisms to communicate their pids. What if we don't want to do that? What if we want both processes to kill without knowing each other's pids?
+Carrying out uni-directional communication from one independent process to another is easy when using `kill()`. All we have to do is run the recipient process, get its pid, and then run the sending process with the pid. Letting both processes know each other pids requires other IPC mechanisms to communicate their pids. What if we don't want to do that? What if we want both processes to call the `kill` function without knowing each other's pids?
 
-We can answer the above questions with two words, process groups. We can start our processes with the same process groups and send signals to each other using `kill(0, signum)`. With this, there's no need for pid exchange and IPC can be carried out in blissful pids ignorance.
+We can answer the above questions with two words process groups. We can start our processes with the same process groups and send signals to each other using `kill(0, signum)`. With this, there's no need for pid exchange, and IPC can be carried out in blissful pids ignorance.
 
 ### Show me the code
 Here's a demonstration of two Python processes communicating with Signals. Here's the first:
@@ -183,7 +183,7 @@ Here's a demonstration of two Python processes communicating with Signals. Here'
     run()
 ```
 
-The above code sets a handler function for the `SIGUSR1` signal. This function prints out a statement to the console using `os.write` and increment i. We use `write` rather than `print` because `print` isn't async-safe. It then sends the `SIGUSR2` signal in a while loop. When it receives a hundred `SIGUSR1` signals the loop ends and a `SIGQUIT` signal is sent. 
+The above code sets a handler function for the `SIGUSR1` signal. This function prints a statement to the console using `os.write` and increment i. We use `write` rather than `print` because `print` isn't async-safe. It then sends the `SIGUSR2` signal in a while loop. When it receives a hundred `SIGUSR1` signals the loop ends, and a `SIGQUIT` signal is sent. 
 
 Here's the second process:
 
@@ -213,11 +213,11 @@ Here's the second process:
     run()
 ```
 
-This one handles 2 signals, `SIGUSR2` and `SIGQUIT`. Each signal has its handler function. On receiving a `SIGUSR2` signal, the process prints out a statement and sends a `SIGUSR` signal. When it receives the `SIGQUIT` signal, the process sets the boolean variable `should_end` to True. This will end the infinite loop and ensure our program exits.
+This one handles 2 signals, `SIGUSR2` and `SIGQUIT`. Each of these signals has its handler function. On receiving a `SIGUSR2` signal, the process prints out a statement and sends a `SIGUSR` signal. When it receives the `SIGQUIT` signal, the process sets the boolean variable `should_end` to True. This will end the infinite loop and ensure our program exits.
 
 It is possible to have one handler function for several signals. We can handle each signal differently based on the value of the `signum`.
 
-You'll notice that both programs set the pid parameter of `os.kill` to 0. This works because both processes run in the same process group. Here's the shell script that is used to run the processes
+You'll notice that both programs set the pid parameter of `os.kill` to 0. This works because both processes run in the same process group. Here's the shell script that is used to run the processes:
 
 ```sh
     trap "" USR1 USR2 QUIT
@@ -227,12 +227,12 @@ You'll notice that both programs set the pid parameter of `os.kill` to 0. This w
 We use the trap instruction to handle all the signals sent by both Python processes. This is because `kill(0, sig)` sends a signal to all the processes in a process group, and the shell process is in the same process group with its default handler(termination). We don't want that, and that's why we handle them with an empty statement.
 
 ### Performance
-Signals are plenty fast. [Cloudflare](https://blog.cloudflare.com/scalable-machine-learning-at-cloudflare/#ipc-mechanisms) benchmarked 	404,844 1KB messages per second. That's cool!
+Signals are plenty fast. [Cloudflare](https://blog.cloudflare.com/scalable-machine-learning-at-cloudflare/#ipc-mechanisms) benchmarked 	404,844 1KB messages per second. That can suit most performance needs.
 
 ### Demo Code
 You can find my code on UDS on [GitHub](https://github.com/goodyduru/ipc-demos).
 
 ### Conclusion
-Unix signals are a straightforward but limited mechanism for IPC. They can do much more than IPC, e.g. handling errors.  You have to be careful about how you use it though!  
+Unix signals are a straightforward but limited mechanism for IPC. They can do much more than IPC, e.g. handling errors. You have to be careful about how you use it!
 
-The next article will mechanism that I didn't know existed until recently, it's called Message Queues. Till then, take care of yourself and stay hydrated! ✌🏾
+The next article will cover a mechanism I didn't know existed until recently called Message Queues. Till then, take care of yourself and stay hydrated! ✌🏾
