@@ -141,4 +141,4 @@ You can find my code on UDS on [GitHub](https://github.com/goodyduru/ipc-demos).
 ### Conclusion
 UDS is a very powerful and reliable IPC mechanism, which is why it's popularly used. Use it if you want your application processes to communicate bi-directionally, and extremely high performance isn't a requirement.
 
-The next article will discuss an old and very limited IPC mechanism called Signal. Till then, take care of yourself and stay hydrated! ✌🏾
+The next article will discuss an old and very limited IPC mechanism called [Signal](https://goodyduru.github.io/os/2023/10/05/ipc-unix-signals.html). Till then, take care of yourself and stay hydrated! ✌🏾
