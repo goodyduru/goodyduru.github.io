@@ -71,7 +71,7 @@ Here's what it outputs after I kill the sleep process by typing `kill 21195`:
 
 As you can see, it's no more; it has been .... killed. The `kill` command can also kill multiple processes together; all you have to do is list the pids of the processes you want to kill. When you type `kill 12983 17838 19983` in your terminal, it kills all the processes whose pids were listed. 
 
-In addition to killing multiple processes whose pids are listed it's possible to kill all processes in a process group. This can be achieved by setting the pid argument to 0. 
+In addition to killing multiple processes whose pids are listed, it's possible to kill all processes in a process group. This can be achieved by setting the pid argument to 0. 
 
 The `kill` command also accepts a prefixed number or name. For now, just think about it as a reason for being killed. Let's look at some examples containing this prefixed number or name and what some of their effects are. I will sequentially start up multiple sleep programs in a shell script and try to kill them slightly differently in a different terminal, starting from the one with the least amount of seconds. Here's the shell script:
 
@@ -115,7 +115,7 @@ One more thing. You can replace those prefixed numbers with prefixed strings. Th
 By now, I bet you're curious about what those prefixed numbers or strings represent. Don't worry, I've got you :-). They are called **signals**. Let's dive into them.
 
 ### Signals
-Signals are standardized messages sent to a process by the Operating System. These messages are very limited in number and are defined in every modern POSIX-compliant system. Some OS might have more and some less, but some universal ones that are on all UNIX-based OS. Here's a list of them and their meaning on [Wikipedia](https://en.wikipedia.org/wiki/Signal_(IPC)#POSIX_signals).
+Signals are standardized messages sent to a process by the Operating System. These messages are very limited in number and are defined in every modern POSIX-compliant system. Some OS might have more and some less, but some universal ones are on all UNIX-based OS. Here's a list of them and their meaning on [Wikipedia](https://en.wikipedia.org/wiki/Signal_(IPC)#POSIX_signals).
 
 These messages have a high priority, and thus, the process must be interrupted from its normal flow to handle it. The main reason why they have high priority is because lots of process errors are delivered to a process using signals. For example, you can see from the `kill` output above that some reasons look like error messages, even though the process didn't have an error.
 
