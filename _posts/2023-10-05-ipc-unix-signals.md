@@ -23,7 +23,7 @@ The above command will print out all the processes that have controlling termina
     15468 ttys056    0:00.33 /bin/zsh -il
     16837 ttys056    0:00.00 sleep 2000
 
-The above [output](https://www.man7.org/linux/man-pages/man1/ps.1.html) lists the pids, terminal type, CPU time, and the process command with its arguments. The _pid_ is what we are mainly concerned about. Whenever we start a process, it is given a unique _pid_ by the OS. A new _pid_ is always more than the previously assigned _pid_ **during an OS uptime<sup><a href="#footer-note-1">[1]</a></sup>**. In database terminology, _pid_ is akin to the PRIMARY KEY for processes. There are special pids which are never assigned to a process, but they have special significance. We will talk about them later.
+The above [output](https://www.man7.org/linux/man-pages/man1/ps.1.html) lists the pids, terminal type, CPU time, and the process command with its arguments. The _pid_ is what we are mainly concerned about. Whenever we start a process, it is given a unique _pid_ by the OS. A new _pid_ is always more than the previously assigned _pid_ **during an OS uptime<sup><a href="#footer-note-1">[1]</a></sup>**. In database terminology, _pid_ is akin to the PRIMARY KEY for processes.
 
 Now that we know about _pids_, let's talk about [process group](https://en.wikipedia.org/wiki/Process_group). According to Wikipedia, a process group is a collection of one or more processes. Every process belongs to a process group, and every process group has an id called _pgid_. By default, the `ps` command does not display the _pgid_ of a process. But, we can include it in the `ps` output by typing the command `ps -o "pid,tty,time,command,pgid"`. Here's my terminal output:
 
@@ -32,7 +32,7 @@ Now that we know about _pids_, let's talk about [process group](https://en.wikip
     15468 ttys056    0:00.41 /bin/zsh -il 15468
     19198 ttys057    0:00.24 /bin/zsh -il 19198
 
-The eagle-eyed reader will notice that a process's `pgid` is the same as its `pid`; that's by design. In **most cases**  when a new process is started, it belongs to its process group of one member (itself). This process group is assigned an id, conveniently the new process's id. If a new process always creates a new process group with a maximum membership count of one, how can multiple processes belong to one group?  Here's a hint. If we start a process, one at a time, and that process has its own group, how do we start multiple processes as a group? The answer is to use a common way to automate system administrative tasks, a shell script. Here's a very simple one:
+The eagle-eyed reader will notice that a process's `pgid` is the same as its `pid`; that's by design. In **most cases**  when a new process is started, it belongs to its process group of one member (itself). This process group is assigned an id, conveniently the new process's id. If a new process always creates a new process group with a maximum membership count of one, how can multiple processes belong to one group?  Here's a question. If we start a process, one at a time, and that process has its own group, how do we start multiple processes as a group? The answer is to use a common way to automate system administrative tasks, a shell script. Here's a very simple one:
 
 ```sh
     sleep 1000 &
@@ -73,7 +73,7 @@ As you can see, it's no more; it has been .... killed. The `kill` command can al
 
 In addition to killing multiple processes whose pids are listed, it's possible to kill all processes in a process group. This can be achieved by setting the pid argument to 0. 
 
-The `kill` command also accepts a prefixed number or name. For now, just think about it as a reason for being killed. Let's look at some examples containing this prefixed number or name and what some of their effects are. I will sequentially start up multiple sleep programs in a shell script and try to kill them slightly differently in a different terminal, starting from the one with the least amount of seconds. Here's the shell script:
+The `kill` command also accepts a number or name prefixed with a hyphen. For now, just think about it as a reason for being killed. Let's look at some examples containing this prefixed number or name and what some of their effects are. I will sequentially start up multiple sleep programs in a shell script and try to kill them slightly differently in a different terminal, starting from the one with the least amount of seconds. Here's the shell script:
 
     ```sh
         sleep 100
@@ -115,7 +115,7 @@ One more thing. You can replace those prefixed numbers with prefixed strings. Th
 By now, I bet you're curious about what those prefixed numbers or strings represent. Don't worry, I've got you :-). They are called **signals**. Let's dive into them.
 
 ### Signals
-Signals are standardized messages sent to a process by the Operating System. These messages are very limited in number and are defined in every modern POSIX-compliant system. Some OS might have more and some less, but some universal ones are on all UNIX-based OS. Here's a list of them and their meaning on [Wikipedia](https://en.wikipedia.org/wiki/Signal_(IPC)#POSIX_signals).
+Signals are standardized messages sent to a process by the Operating System. The list of these messages is very limited in number and are defined in every modern POSIX-compliant system. Some OS might have more and some less, but some universal ones are on all UNIX-based OS. Here's a list of them and their meaning on [Wikipedia](https://en.wikipedia.org/wiki/Signal_(IPC)#POSIX_signals).
 
 These messages have a high priority, and thus, the process must be interrupted from its normal flow to handle it. The main reason why they have high priority is because lots of process errors are delivered to a process using signals. For example, you can see from the `kill` output above that some reasons look like error messages, even though the process didn't have an error.
 
@@ -156,7 +156,7 @@ Luckily for us, we can do what kill does. That's because the `kill` process call
 
 Carrying out uni-directional communication from one independent process to another is easy when using `kill()`. All we have to do is run the recipient process, get its pid, and then run the sending process with the pid. Letting both processes know each other pids requires other IPC mechanisms to communicate their pids. What if we don't want to do that? What if we want both processes to call the `kill` function without knowing each other's pids?
 
-We can answer the above questions with two words process groups. We can start our processes with the same process groups and send signals to each other using `kill(0, signum)`. With this, there's no need for pid exchange, and IPC can be carried out in blissful pids ignorance.
+We can answer the above questions with two words "process groups". We can start our processes with the same process groups and send signals to each other using `kill(0, signum)`. With this, there's no need for pid exchange, and IPC can be carried out in blissful pids ignorance.
 
 ### Show me the code
 Here's a demonstration of two Python processes communicating with Signals. Here's the first:
@@ -233,6 +233,6 @@ Signals are plenty fast. [Cloudflare](https://blog.cloudflare.com/scalable-machi
 You can find my code on UDS on [GitHub](https://github.com/goodyduru/ipc-demos).
 
 ### Conclusion
-Unix signals are a straightforward but limited mechanism for IPC. They can do much more than IPC, e.g. handling errors. You have to be careful about how you use it!
+Unix signals are a straightforward but limited mechanism for IPC. They can do much more than IPC, e.g. set alarms, handling errors. You have to be careful about how you use it!
 
 The next article will cover a mechanism I didn't know existed until recently called Message Queues. Till then, take care of yourself and stay hydrated! ✌🏾
