@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "IPC - Message Queues"
-date: 2023-11-08
+date: 2023-11-13
 categories: os
 ---
 
@@ -10,7 +10,7 @@ In the previous article, we covered [Unix Signal](https://goodyduru.github.io/os
 ### Message Queues 
 There are two types of message queues - System V and POSIX. There are lots of similarities between them, with minor differences. This article focuses on System V because it is the more widely supported type. 
 
-In basic terms, a [message queue](https://github.com/torvalds/linux/blob/6bc986ab839c844e78a2333a02e55f02c9e57935/ipc/msg.c#L49) is a linked list of messages. The OS can maintain several lists of sent messages, each referenced by a unique integer key. A message is sent by appending to the list and received by popping from the head of the list. This list is managed by the OS kernel and is stored in memory. In-memory storage of the list allows for asynchronous communication. This means communicating processes do not need to be interacting with the same queue at the same time.
+In basic terms, a [message queue](https://github.com/torvalds/linux/blob/6bc986ab839c844e78a2333a02e55f02c9e57935/ipc/msg.c#L49) is a linked list of messages. The OS can maintain several lists of sent messages, each referenced by a unique integer identifier. A message is sent by appending to the list and received by popping from the head of the list. This list is managed by the OS kernel and is stored in memory. In-memory storage of the list allows for asynchronous communication. This means communicating processes do not need to be interacting with the same queue at the same time.
 
 Before creating or accessing a message queue, a unique key is to be generated deterministically. It needs to be unique to avoid an error when creating a queue. The same key must be used by all the application processes to communicate via the same queue. A recommended way for generating a key is to call the [`ftok`](https://man7.org/linux/man-pages/man3/ftok.3.html) function. This function accepts a file path and an integer. The file path must be an existing file or an error will be returned. A recommended file path can be the application configuration file. The `ftok` function will always return the same result as long as the file isn't deleted and recreated. Collisions can happen, but the chances of those are pretty slim.
 
