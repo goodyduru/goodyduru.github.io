@@ -23,7 +23,7 @@ What if you want your processes to be independent, to communicate, and yet not d
 * [Named Pipes](https://goodyduru.github.io/os/2023/09/26/ipc-named-pipes.html)
 * [Unix Domain Sockets](https://goodyduru.github.io/os/2023/10/03/ipc-unix-domain-sockets.html)
 * [Unix Signals](https://goodyduru.github.io/os/2023/10/05/ipc-unix-signals.html)
-* Message Queues
+* [Message Queues](https://goodyduru.github.io/os/2023/11/13/ipc-message-queues.html)
 * Shared Memory
 * Memory-Mapped Files
 

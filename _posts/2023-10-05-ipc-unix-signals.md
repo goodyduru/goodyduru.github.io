@@ -235,7 +235,7 @@ You can find my code on UDS on [GitHub](https://github.com/goodyduru/ipc-demos).
 ### Conclusion
 Unix signals are a straightforward but limited mechanism for IPC. They can do much more than IPC, e.g. set alarms, handling errors. There are some issues in using it, so be cautious.
 
-The next article will cover a mechanism I didn't know existed until recently called Message Queues. Till then, take care of yourself and stay hydrated! ✌🏾
+The next article will cover a mechanism I didn't know existed until recently called [Message Queues](https://goodyduru.github.io/os/2023/11/13/ipc-message-queues.html). Till then, take care of yourself and stay hydrated! ✌🏾
 
 ***
 

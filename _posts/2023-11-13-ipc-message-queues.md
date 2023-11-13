@@ -24,12 +24,12 @@ Message queues have a maximum size specified by the OS, which can be [configured
 
 Receiving a message is done using the `msgrcv` function. The difference between these function parameters and `msgsnd` parameters is the message type. This type determines if the process wants to read any message (0), a specific message type (a positive integer), or a particular message group (a negative integer). Setting the type to a negative integer reads any message whose type is less than or equal to the absolute value of the specified type. This function removes a message from the queue and copies it to the provided message buffer parameter.
 
-The `msgrcv` function will defaultly block if the queue is empty/no message of the specified type(s). This can be prevented by specifying `IPC_NOWAIT` in the flag argument, which makes the function return an error. In Linux, if there's no message of the type(s), the first message in the queue can be read if `MSG_EXCEPT` is specified in the flag argument.
+The `msgrcv` function will by default block if the queue is empty/no message of the specified type(s). This can be prevented by specifying `IPC_NOWAIT` in the flag argument, which makes the function return an error. In Linux, if there's no message of the type(s), the first message in the queue can be read if `MSG_EXCEPT` is specified in the flag argument.
 
 Message queues can be removed and configured by the [`msgctl`](https://man7.org/linux/man-pages/man2/msgctl.2.html) function. The function also allows for reading a message queue metadata.
 
 ### Show me the code
-This example will demonstrate two processes communicating using a message queue in Python. Unfortunately, Python does not provide out-of-the-box message queue support. This made me use the excellent [sysv-ipc](https://semanchuk.com/philip/sysv_ipc/#message_queue) module. You can find the pip package [here](https://pypi.org/project/sysv-ipc/).
+This example will demonstrate two processes communicating using a message queue in Python. Unfortunately, Python does not provide out-of-the-box message queue support. Instead, I made use of the excellent [sysv-ipc](https://semanchuk.com/philip/sysv_ipc/#message_queue) library. You can find the pip package [here](https://pypi.org/project/sysv-ipc/).
 
 Here's the client code:
 ```python
