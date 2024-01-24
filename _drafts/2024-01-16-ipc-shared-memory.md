@@ -23,6 +23,31 @@ Virtual addressing allows multiple processes to co-exist without stepping on eac
 If processes can only use virtual memory which cannot be shared, how can they communicate using Shared Memory? Let's look at that.
 
 ### Shared Memory
+Shared memory is a segment of memory shared between processes. The segment of physical memory is mapped to each processes' virtual memory via their page tables. Once this is done, the process can read and write to this segment just like it does with other segments. Any data written to this segment is visible to other processes. It is possible that this segment's virtual address could differ for each of the participating processes even though they are mapped to the same physical memory segment.
+
+As with [Message Queues](https://goodyduru.github.io/os/2023/11/13/ipc-message-queues.html#message-queues), there are two kinds of Shared Memory - System V and POSIX. This article will focus on System V.
+
+Before creating or accessing a Shared Memory segment, a unique integer key needs to be used. If the key isn't unique, an outsider process might communicate with your own processes which could be annoying or even worse damaging. This key can be hard-coded in each of the participating process, or it could be generated. Hard coding the key reduces the chances of uniqueness because an outsider process could generate one or might have the same key hard coded in it. The key could be generated in a way that guarantees that all participating processes will generate the same key. Fortunately, a function that (almost) guarantees uniqueness and is deterministic exists. This function is called [`ftok`](https://man7.org/linux/man-pages/man3/ftok.3.html). It accepts an existing file path and an integer. As long as the file pointed to by the path isn't recreated, `ftok` will return the same result. All the participating processes need to do is to call the `ftok` function with the same file path and integer and they will get the same key. Extra security steps could include ensuring that the file is only accessible to the participating processes.
+
+Once a key is generated, a process can be use it to get or create a shared memory segment by calling the [`shmget`](https://man7.org/linux/man-pages/man3/shmget.3p.html) function. This function accepts 3 parameters; the key, the size of the shared memory and a flag. If the key isn't associated with a shared memory segment and the **IPC_CREAT** bit is set in the flag, a shared memory segment is created whose size is set to the size parameter . On creating this segment, the function returns an id. If the key has an associated shared memory segment already, an id for the existing segment is returned even if the flag has its **IPC_CREAT** bit set. Errors can happen for several reasons which the man page covers. Permissions can be defined in the flag using the same format as [file permissions](https://www.multacom.com/faq/password_protection/file_permissions.htm).
+
+After successfully getting an id, the virtual memory address of the shared memory segment is gotten by calling the [`shmat`](https://man7.org/linux/man-pages/man3/shmat.3p.html) function. This function accepts 3 parameters; the shared memory id gotten from `shmget`, the virtual memory address the process would like the segment to be mapped and a flag. The OS will pick an address if the address parameter is set to zero. A memory address is returned on successful execution of the function.
+
+After a memory address is returned, a process can communicate with other processes by just reading and writing to the address. There are no special functions for reading and writing to the address. These are done using the same methods as reading and writing to other addresses.
+
+When a process is done communicating, it can detach the segment from its address space by calling the [`shmdt`](https://man7.org/linux/man-pages/man3/shmdt.3p.html) function. The function accepts only one parameter, which is the virtual memory address gotten from `shmat`. Once this function is called, the address becomes invalid and interacting with it could cause a Segmentation Fault.
+
+Detaching the segment does not destroy it, even if all the participating process detach from it. Destroying it is done by calling 
+
+> shmctl(id, IPC_RMID, NULL);
+
+The `id` parameter is the shared memory segment's id gotten from `shmget`, the `IPC_RMID` is a constant that is interpreted by the `shmctl` function to destroy the segment. In addition to destroying a segment, [`shmctl`](https://man7.org/linux/man-pages/man3/shmctl.3p.html) can be used to configure a segment.
+
+A list of all the shared memory segments on a system can be gotten by this command `ipcs -m`.
+
+Enough talk, let's look at an example in Python.
+
+### Show me the code
 
 ***
 
@@ -30,7 +55,7 @@ If processes can only use virtual memory which cannot be shared, how can they co
 
 ***
 
-<div id="footer-note-1">[2] Most CPU architectures support both addressing mode. Booting a system usually starts with physical addressing, after which the kernel switches to virtual addressing before the first application process is even started. You can see where the Linux kernel carries out this switch for x86 <a href="https://github.com/torvalds/linux/blob/9d1694dc91ce7b80bc96d6d8eaf1a1eca668d847/arch/x86/boot/pm.c#L103">here</a>  </div>
+<div id="footer-note-1">[2] Most CPU architectures support both addressing mode. Booting a system usually starts with physical addressing, after which the kernel switches to virtual addressing before the first application process is even started. You can see how the Linux kernel carries out this switch for x86 <a href="https://github.com/torvalds/linux/blob/9d1694dc91ce7b80bc96d6d8eaf1a1eca668d847/arch/x86/boot/pm.c#L103">here</a>  </div>
 
 ***
 
