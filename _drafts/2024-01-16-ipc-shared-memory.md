@@ -48,6 +48,97 @@ A list of all the shared memory segments on a system can be gotten by this comma
 Enough talk, let's look at an example in Python.
 
 ### Show me the code
+This example will demonstrate two processes communicating using a shared memory in Python. Python does not provide out-of-the-box shared memory support. Instead, I made use of the excellent [sysv-ipc](https://semanchuk.com/philip/sysv_ipc/#shared_memory) library. You can find the pip package [here](https://pypi.org/project/sysv-ipc/).
+
+Here's the client code:
+```python
+import os
+import time
+
+import sysv_ipc
+
+ROUNDS = 100
+
+def run():
+    path = '/tmp/example'
+    fd = os.open(path, flags=os.O_CREAT)
+    os.close(fd)
+    key = sysv_ipc.ftok(path, 42)
+    mem = sysv_ipc.SharedMemory(key, size=20, flags=sysv_ipc.IPC_CREAT, mode=0o644)
+    i = 0
+    message = b"ping"
+    while i != ROUNDS:
+        mem.write(message)
+        print("Client: Sent ping")
+        data = mem.read(4)
+        while data == message:
+            time.sleep(1e-6)
+            data = mem.read(4)
+        data = data.decode()
+        print(f"Client: Received {data}")
+        i += 1
+    mem.write(b"end")
+    mem.detach()
+
+
+run()
+```
+A temp file is (optionally) created to ensure that it exists. The ftok function is called with the file path and an integer. The shared memory segment is (optionally) created and accessed. This returns a shared memory object. A loop is run where a message containing a byte string is sent. To prevent the process from processing a message that it sent, a while loop runs that puts the process to sleep and receives a message. The while loop stops if the message is different from the one sent, signifying that the message was sent from another process. This while loop is a very primitive form of communication synchronization. The message received is decoded and printed, and then the loop continues. The loop is ended when _ROUNDS_ messages are sent. Afterward, an _end_ message is sent to signify that the client is done.
+
+Messages sent and received are byte strings, not regular strings, and thus have to be encoded and decoded accordingly.
+
+Here's the server code
+
+```python
+import os
+import time
+
+import sysv_ipc
+
+def run():
+    path = '/tmp/example'
+    fd = os.open(path, flags=os.O_CREAT) # create file
+    os.close(fd)
+    key = sysv_ipc.ftok(path, 42)
+    mem = sysv_ipc.SharedMemory(key, size=20, flags=sysv_ipc.IPC_CREAT, mode=0o644)
+    data = mem.read(4)
+    message = b"pong"
+    while data != b"ping":
+        time.sleep(5e-6)
+        data = mem.read(4)
+    data = data.decode()
+    while data[0] != 'e':
+        print(f"Server: Received {data}")
+        mem.write(message)
+        print(f"Server: Sent pong")
+        data = mem.read(4)
+        while data == message:
+            time.sleep(1e-6)
+            data = mem.read(4)
+        data = data.decode()
+    mem.remove()
+    mem.detach()
+    os.unlink(path)
+
+run()
+```
+
+The server code sets up the shared memory segment similarly to the client code. Because `ftok` is called with the exact parameters as the one in the client code, the generated key value will be the same. A message is sent and a while loop runs that ensures the message received isn't the same as the sent message. A loop is run, which checks that the first character of the received message isn't equal to _e_ which signifies that _end_ wasn't received. Inside this loop, the received message is printed, and a different message is sent. Once sent, another message check runs as a while loop. The message is then received and decoded.
+
+The loop stops once the _end_ message is received. The file for generating the key and the shared memory segment are deleted. The program then exits.
+
+### Performance
+Shared message are really the fast, you could say that there isn't much difference between it and the fastest (mmap). [IPC-Bench](https://github.com/goldsborough/ipc-bench#benchmarked-on-intelr-coretm-i5-4590s-cpu--300ghz-running-ubuntu-20041-lts) benchmarked 1,659,291 1KB messages per second on an Intel(R) Core(TM) i5-4590S CPU @ 3.00GHz running Ubuntu 20.04.1 LTS. That's super fast.
+
+Due to it's blazing speed and its similarity to the standard reading and writing to memory addresses, you'd need to include a form of synchronization mechanism when using Shared Memory just as the code snippets above show.
+
+### Demo Code
+You can find my code on UDS on [GitHub](https://github.com/goodyduru/ipc-demos).
+
+### Conclusion
+Shared Memory is a really easy and fast IPC mechanism to use with a familiar model for sending and receiving messages. Even then, using it comes with the complexity of including a synchronization mechanism. But once you get that right, it's totally fast.
+
+The next article will cover another blazing-fast and familiar IPC mechanism called Memory-Mapped Files. Till then, take care of yourself and stay hydrated! ✌🏾
 
 ***
 
