@@ -230,7 +230,7 @@ We use the trap instruction to handle all the signals sent by both Python proces
 Signals are plenty fast. [Cloudflare](https://blog.cloudflare.com/scalable-machine-learning-at-cloudflare/#ipc-mechanisms) benchmarked 	404,844 messages per second<sup><a href="#footer-note-2">[2]</a></sup>. That can suit most performance needs.
 
 ### Demo Code
-You can find my code on UDS on [GitHub](https://github.com/goodyduru/ipc-demos).
+You can find my code that demonstrates Unix Signals on [GitHub](https://github.com/goodyduru/ipc-demos).
 
 ### Conclusion
 Unix signals are a straightforward but limited mechanism for IPC. They can do much more than IPC, e.g. set alarms, handling errors. There are some issues in using it, so be cautious.

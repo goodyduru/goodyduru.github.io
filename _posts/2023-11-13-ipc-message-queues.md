@@ -101,7 +101,7 @@ The loop stops once the _end_ message is received. The file for generating the k
 Message queues are pretty fast. [IPC-Bench](https://github.com/goldsborough/ipc-bench#benchmarked-on-intelr-coretm-i5-4590s-cpu--300ghz-running-ubuntu-20041-lts) benchmarked 213,796 1KB messages per second on an Intel(R) Core(TM) i5-4590S CPU @ 3.00GHz running Ubuntu 20.04.1 LTS. That's fast enough for most inter-process communication needs.
 
 ### Demo Code
-You can find my code on UDS on [GitHub](https://github.com/goodyduru/ipc-demos).
+You can find my code that demonstrates Message Queues on [GitHub](https://github.com/goodyduru/ipc-demos).
 
 ### Conclusion
 Message Queues are a familiar communication pattern. Using them for your unidirectional or bi-directional inter-process communication needs is a good choice.

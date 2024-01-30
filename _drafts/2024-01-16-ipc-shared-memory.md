@@ -133,7 +133,7 @@ Shared message is super fast. There isn't much difference between it and the fas
 Due to its blazing-fast speed and its similarity to the standard reading and writing to memory addresses, you'd need to include some form of synchronization mechanism when using Shared Memory just as the code snippets above show.
 
 ### Demo Code
-You can find my code on UDS on [GitHub](https://github.com/goodyduru/ipc-demos).
+You can find my code that demonstrates Shared Memory on [GitHub](https://github.com/goodyduru/ipc-demos).
 
 ### Conclusion
 Shared Memory is an easy and fast IPC mechanism. It has a straightforward model for sending and receiving messages. Even then, using it comes with the complexity of including a synchronization mechanism. But once you get that right, its speed makes it worth it.
