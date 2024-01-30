@@ -14,7 +14,7 @@ There are two modes of addressing memory: __physical__ and __virtual__<sup><a hr
 
 Physical addressing is fine when only one process is expected to run on the computer. It is a disaster for a multi-process system. For example, if  2 different processes, A and B, are up simultaneously, A could write to a memory address B also reads from. Even worse, A could write to a memory address containing part of B's executable code even if B is the kernel process.
 
-The above issue is one of the reasons why virtual addressing is the memory address mode used by processes in many microprocessor architectures today<sup><a href="#footer-note-2">[2]</a></sup>. In virtual addressing mode, when a process reads data from a memory address, this memory address is translated to a physical address by the [MMU](https://en.wikipedia.org/wiki/Memory_management_unit), the data stored at that physical address is fetched from and handed over to the process. This is done without the knowledge of the process. 
+The above issue is one of the reasons why virtual addressing is the memory address mode used in many microprocessor architectures today<sup><a href="#footer-note-2">[2]</a></sup>. In virtual addressing mode, when a process reads data from a memory address, this memory address is translated to a physical address by the [MMU](https://en.wikipedia.org/wiki/Memory_management_unit), and the data stored at that physical address is fetched from and handed over to the process. This is done without the knowledge of the process. 
 
 This address translation is done using the help of a [__Page Table__](https://en.wikipedia.org/wiki/Page_table). The Page Table stores the mapping between virtual and physical addresses in [page](https://en.wikipedia.org/wiki/Page_(computer_memory))<sup><a href="#footer-note-3">[3]</a></sup> units. Every process has its page table and allows the process to reference __almost<sup><a href="#footer-note-4">[4]</a></sup>__ all the addresses up to the table's maximum address<sup><a href="#footer-note-5">[5]</a></sup>
 
@@ -123,7 +123,7 @@ def run():
 run()
 ```
 
-The server code sets up the shared memory segment similarly to the client code. Because `ftok` is called with the exact parameters as the one in the client code, the generated key value will be the same. A message is sent and a while loop runs that ensures the message received isn't the same as the sent message. A loop is run, which checks that the first character of the received message isn't equal to _e_ which signifies that _end_ wasn't received. Inside this loop, the received message is printed, and a different message is sent. Once sent, another message check runs as a while loop. The message is then received and decoded.
+The server code sets up the shared memory segment similarly to the client code. Because `ftok` is called with the exact same parameters as the one in the client code, the generated key value will be the same. A message is sent and a while loop runs that ensures the message received isn't the same as the sent message. A loop is run, which checks that the first character of the received message isn't equal to _e_ which signifies that _end_ wasn't received. Inside this loop, the received message is printed, and a different message is sent. Once sent, another message check runs as a while loop. The message is then received and decoded.
 
 The loop stops once the _end_ message is received. The file for generating the key and the shared memory segment are deleted. The program then exits.
 
