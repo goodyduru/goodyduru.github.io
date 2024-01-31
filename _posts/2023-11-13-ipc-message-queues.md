@@ -106,4 +106,4 @@ You can find my code that demonstrates Message Queues on [GitHub](https://github
 ### Conclusion
 Message Queues are a familiar communication pattern. Using them for your unidirectional or bi-directional inter-process communication needs is a good choice.
 
-The next article will cover a blazing-fast IPC mechanism called Shared Memory. Till then, take care of yourself and stay hydrated! ✌🏾
+The next article will cover a blazing-fast IPC mechanism called [Shared Memory](https://goodyduru.github.io/os/2024/01/31/ipc-shared-memory.html). Till then, take care of yourself and stay hydrated! ✌🏾

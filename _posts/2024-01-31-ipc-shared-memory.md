@@ -141,21 +141,14 @@ Shared Memory is an easy and fast IPC mechanism. It has a straightforward model 
 The next article will cover another blazing-fast and familiar IPC mechanism called Memory-Mapped Files. Till then, take care of yourself and stay hydrated! ✌🏾
 
 ***
+<ol>
+<li><div id="footer-note-1">Known as Real Mode and Protected Mode in x86.  </div></li>
 
-<div id="footer-note-1">[1] Known as Real Mode and Protected Mode in x86.  </div>
+<li><div id="footer-note-2">Most CPU architectures support both addressing modes. Booting this kind of system starts with physical addressing, after which the kernel switches to virtual addressing before the first application process is even started. You can see how the Linux kernel carries out this switch for x86 <a href="https://github.com/torvalds/linux/blob/9d1694dc91ce7b80bc96d6d8eaf1a1eca668d847/arch/x86/boot/pm.c#L103">here</a>  </div></li>
 
-***
+<li><div id="footer-note-3">The default size of a page on x86 is 4KB.  </div></li>
 
-<div id="footer-note-1">[2] Most CPU architectures support both addressing modes. Booting this kind of system starts with physical addressing, after which the kernel switches to virtual addressing before the first application process is even started. You can see how the Linux kernel carries out this switch for x86 <a href="https://github.com/torvalds/linux/blob/9d1694dc91ce7b80bc96d6d8eaf1a1eca668d847/arch/x86/boot/pm.c#L103">here</a>  </div>
+<li><div id="footer-note-4">Almost, because the kernel can prevent a process from accessing some addresses using the <a href="https://unix.stackexchange.com/a/68151">access control bits</a> of a page table entry  </div></li>
 
-***
-
-<div id="footer-note-3">[3] The default size of a page on x86 is 4KB.  </div>
-
-***
-
-<div id="footer-note-4">[4] Almost, because the kernel can prevent a process from accessing some addresses using the <a href="https://unix.stackexchange.com/a/68151">access control bits</a> of a page table entry  </div>
-
-***
-
-<div id="footer-note-5">[5] 256 TiB on x86-64 or 128 PiB with extension which is way bigger than your average RAM size. This massive difference in size between the virtual and physical address size allows the combined memory usage of all the processes in your system to be larger than the installed RAM size.   </div>
+<li><div id="footer-note-5">256 TiB on x86-64 or 128 PiB with extension which is way bigger than your average RAM size. This massive difference in size between the virtual and physical address size allows the combined memory usage of all the processes in your system to be larger than the installed RAM size.   </div></li>
+</ol>
