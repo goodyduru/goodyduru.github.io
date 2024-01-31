@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "IPC - Shared Memory"
-date: 2024-01-16
+date: 2024-01-31
 categories: os
 ---
 
