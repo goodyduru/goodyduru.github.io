@@ -138,7 +138,7 @@ You can find my code that demonstrates Shared Memory on [GitHub](https://github.
 ### Conclusion
 Shared Memory is an easy and fast IPC mechanism. It has a straightforward model for sending and receiving messages. Even then, using it comes with the complexity of including a synchronization mechanism. But once you get that right, its speed makes it worth it.
 
-The next article will cover another blazing-fast and familiar IPC mechanism called Memory-Mapped Files. Till then, take care of yourself and stay hydrated! ✌🏾
+The next article will cover another blazing-fast and familiar IPC mechanism called [Memory-Mapped Files](https://goodyduru.github.io/os/2024/03/18/ipc-mmap.html). Till then, take care of yourself and stay hydrated! ✌🏾
 
 ***
 <ol>

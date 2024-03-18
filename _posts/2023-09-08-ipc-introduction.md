@@ -25,7 +25,7 @@ What if you want your processes to be independent, to communicate, and yet not d
 * [Unix Signals](https://goodyduru.github.io/os/2023/10/05/ipc-unix-signals.html)
 * [Message Queues](https://goodyduru.github.io/os/2023/11/13/ipc-message-queues.html)
 * [Shared Memory](https://goodyduru.github.io/os/2024/01/31/ipc-shared-memory.html)
-* Memory-Mapped Files
+* [Memory-Mapped Files](https://goodyduru.github.io/os/2024/03/18/ipc-mmap.html)
 
 Files and TCP Sockets (which I call networks) are also IPC mechanisms, but I won't discuss those. They are familiar, and there are lots of articles about them. `eventfd` is another mechanism, but the processes cannot be independent (they must share a parent process in the code).
 
