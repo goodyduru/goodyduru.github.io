@@ -82,7 +82,7 @@ Pretty ordinary, with no clever tricks, just straightforward C code. This piece 
 #### 2. So Many Kinds Of Operators
 Take a look at [this](https://github.com/postgres/postgres/blob/3741f2a09d5205ec32bd8af5d1f397e08995932b/src/include/catalog/pg_operator.dat#L100). Postgres has lots of operators. Initially, I thought the `=` sign would only have one constant. I could not have been more mistaken. There are Int4EqualOperator, TextEqualOperator, NameEqualTextOperator, BooleanEqualOperator, TIDEqualOperator, BpcharEqualOperator, ByteaEqualOperator, and this is just for the equal sign. Other operators have different subtypes, with each subtype having its own oid.
 
-It made our where clause handler a bit more complex but I can't complain. I'm curious about the reason for this though. Please, I'd love to hear from you if you know :-).
+It made our where clause handler a bit more complex, but I can't complain. I'm curious about the reason for this, though. Please, I'd love to hear from you if you know :-).
 
 #### 3. Rust Pointers
 Working on this project introduced me to using pointers in Rust lots of time. In an unsafe context, Rust pointers behave so much like C. While the basic pointer stuff like referencing and dereferencing pointers are covered well by the Rust [book](https://doc.rust-lang.org/book/ch19-01-unsafe-rust.html#dereferencing-a-raw-pointer), there are two things I learned about Rust pointers when building this extension. Here they are:
@@ -126,7 +126,7 @@ fn convert_person_to_user(x: Person) {
 }
 ```
 
-When you run this code, the Rust compiler will throw an error. This error will occur despite both structs having the same fields. This is a good thing, but it might be a bit inconvenient. There are other ways you could achieve this, rather than using straight-up casting. But what if you are working with library code or C code and need to cast? We can achieve it with pointers. Here's the above function rewritten to use pointers.
+When you run this code, the Rust compiler will throw an error. This error will occur despite both structs having the same fields. This is a good thing, but it might be a bit inconvenient. There are other ways you could achieve this rather than using straight-up casting. But what if you are working with a library or C code and need to cast? We can achieve it with pointers. Here's the above function rewritten to use pointers.
 
 ```rust 
 unsafe fn convert_to_user(mut x: Person) {
@@ -143,7 +143,7 @@ I won't advise anyone to use the above methods to solve problems, but you might 
 Speaking of casting...
 
 #### 4. Adding extra fields to a struct
-Imagine you're using a todo library that works with only one task. When you add a task, it throws away the previous one
+Imagine you're using a todo library that works with only one task. When you add a task, it throws away the previous one.
 
 ```rust
 #[derive(Clone)]
@@ -214,7 +214,7 @@ fn create_todo() {
 }
 ```
 
-The above code shows how using casting has helped achieve both needs. To pull this off, we needed a little help from the library code. Notice the [`repr`](https://doc.rust-lang.org/reference/type-layout.html#the-c-representation) attribute on both `Todo` and `CustomTodo` that tells the Rust compiler to treat both like a C struct. The attribute ensures that the compiler doesn't change the order of the struct's fields. A segmentation fault would have occurred if the library hadn't added the attribute to the `Todo` struct.
+The above code shows how using casting has helped achieve both needs. We still needed help from the library code to pull this off, though. Notice the [`repr`](https://doc.rust-lang.org/reference/type-layout.html#the-c-representation) attribute on both `Todo` and `CustomTodo` that tells the Rust compiler to treat both like a C struct. The attribute ensures that the compiler doesn't change the order of the struct's fields. A segmentation fault would have occurred if the library hadn't added the attribute to the `Todo` struct.
 
 This struct manipulation is dangerous and shouldn't be used thoughtlessly in your code. There are ways to achieve the above intent without meddling in unsafe territory. Dealing with C code or FFI might call for a need for it.
 
