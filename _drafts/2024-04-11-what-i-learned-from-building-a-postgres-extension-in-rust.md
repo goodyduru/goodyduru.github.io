@@ -5,12 +5,12 @@ date: 2024-04-11
 categories: database
 ---
 
-This is a list of things I learned from building the [postgres-redis](https://github.com/systemEng-Learning/postgres-redis) extension for Postgres in Rust. A retrospective design and implementation article, this is not. I wrote that up [here]().
+This is a list of things I learned from building the [Postgres-redis](https://github.com/systemEng-Learning/postgres-redis) extension for Postgres in Rust. A retrospective design and implementation article, this is not. I wrote that up [here]().
 
-Building this extension opened my eyes towards some of Postgres design details and Rust tricks. The things I learned might be normal and widely known, but I learned them on this project. Here's what I learned.
+Building this extension opened my eyes to some of Postgres's design details and Rust tricks. The things I learned might be ordinary and widely known, but I learned about them on this project. Here's what I learned.
 
 #### 1. The Mundanity Of Excellence
-Take a look at this piece of code
+Take a look at this piece of code:
 
 ```c
 /*
@@ -77,17 +77,17 @@ Take a look at this piece of code
 			break;
 	}
 ```
-Pretty normal, no clever tricks, just straightforward C code. This piece of code [taken](https://github.com/postgres/postgres/blob/b1b13d2b524e64e3bf3538441366bdc8f6d3beda/src/backend/executor/execMain.c#L1638) from Postgres is responsible for inserting/updating/deleting/selecting tuples (rows) from a table. It's pretty amazing how simple it is, and yet almost all select/update/delete/insert query you run against your Postgres table executes this code. It wasn't just this area, other parts of the Postgres codebase was like this. Simple pieces of code that combine together to create an excellent, reliable, sophisticated and amazing software. It reminds me of Da Vinci quote: Simplicity is the ultimate sophistication.
+Pretty ordinary, with no clever tricks, just straightforward C code. This piece of code [taken](https://github.com/postgres/postgres/blob/b1b13d2b524e64e3bf3538441366bdc8f6d3beda/src/backend/executor/execMain.c#L1638) from Postgres is responsible for inserting/updating/deleting/selecting tuples (rows) from a table. It's pretty amazing how simple it is, yet almost all select/update/delete/insert queries you run against your Postgres table execute this code. It wasn't just this area; other parts of the Postgres codebase were like this. Simple pieces of code that are combined to create excellent, reliable, sophisticated, and amazing software. It reminds me of Da Vinci's quote: Simplicity is the ultimate sophistication.
 
 #### 2. So Many Kinds Of Operators
-Take a look at [this](https://github.com/postgres/postgres/blob/3741f2a09d5205ec32bd8af5d1f397e08995932b/src/include/catalog/pg_operator.dat#L100). Postgres has lots of operators. Initially I thought the `=` sign would only have one constant. I could not have been more mistaken. There are Int4EqualOperator, TextEqualOperator, NameEqualTextOperator, BooleanEqualOperator, TIDEqualOperator, BpcharEqualOperator, ByteaEqualOperator, and this is just for the equal sign. Other operators have their own different kinds, with specific oids for each kind.
+Take a look at [this](https://github.com/postgres/postgres/blob/3741f2a09d5205ec32bd8af5d1f397e08995932b/src/include/catalog/pg_operator.dat#L100). Postgres has lots of operators. Initially, I thought the `=` sign would only have one constant. I could not have been more mistaken. There are Int4EqualOperator, TextEqualOperator, NameEqualTextOperator, BooleanEqualOperator, TIDEqualOperator, BpcharEqualOperator, ByteaEqualOperator, and this is just for the equal sign. Other operators have different subtypes, with each subtype having its own oid.
 
-It made our where clause handler a bit more complex but I can't complain. I'm curious about the reason for this though. Please if you know, I'd love to hear about it :-).
+It made our where clause handler a bit more complex but I can't complain. I'm curious about the reason for this though. Please, I'd love to hear from you if you know :-).
 
 #### 3. Rust Pointers
-Working on this project introduced me to using pointers in Rust lots of time. It turns out that in an unsafe context, Rust pointers behave so much like C. While the basic pointer stuff like referencing and dereferencing pointers are covered well by the Rust [book](https://doc.rust-lang.org/book/ch19-01-unsafe-rust.html#dereferencing-a-raw-pointer), there are two things I learnt about Rust pointers when building this extension. Here they are:
+Working on this project introduced me to using pointers in Rust lots of time. In an unsafe context, Rust pointers behave so much like C. While the basic pointer stuff like referencing and dereferencing pointers are covered well by the Rust [book](https://doc.rust-lang.org/book/ch19-01-unsafe-rust.html#dereferencing-a-raw-pointer), there are two things I learned about Rust pointers when building this extension. Here they are:
 
-* Pointer arithmetic: Imagine you have a list of objects and you have the pointer to the first item, how do you get to the nth item. In C, you'd probably do this:
+* Pointer arithmetic: Imagine you have a list of objects and the pointer to the first item in the list; how do you get to the nth item? In C, you'd probably do this:
 
 ```c
 struct object* get_nth(struct object* list, int n) {
@@ -96,7 +96,7 @@ struct object* get_nth(struct object* list, int n) {
 }
 ```
 
-I needed to do something like this when porting this [function](https://doc.rust-lang.org/book/ch19-01-unsafe-rust.html#dereferencing-a-raw-pointer) from C to Rust. Thankfully, Rust has a really handy function for that. It's called [offset](https://doc.rust-lang.org/std/primitive.pointer.html#method.offset) and it worked well. Here's how the above code will look in Rust:
+I needed to do something like this when porting this [function](https://doc.rust-lang.org/book/ch19-01-unsafe-rust.html#dereferencing-a-raw-pointer) from C to Rust. Thankfully, Rust has a handy function for that called [offset](https://doc.rust-lang.org/std/primitive.pointer.html#method.offset). Here's how the above code will look in Rust:
 
 ```rust
 unsafe fn get_nth(list: *mut object, n: isize) -> *mut object {
@@ -107,7 +107,7 @@ unsafe fn get_nth(list: *mut object, n: isize) -> *mut object {
 
 That's it!!! Really straightforward and dangerous 🙃. 
 
-* Easily cast a struct variable to another: Rust protects the programmer a lot. More importantly, it protects the programmer from themselves. Let's say you want to convert a variable from one struct type to another struct type. In Rust, we want to achieve something like this:
+* Easily cast a struct variable to another: Rust is a strict programming language. This can make learning the language a chore. One of the reasons why it's strict is because it tries to protect the programmer from the clever version of themselves. Let's say you want to convert a variable from one struct type to another. In Rust, we want to achieve something like this:
 
 ```rust
 struct Person {
@@ -126,7 +126,7 @@ fn convert_person_to_user(x: Person) {
 }
 ```
 
-When you run this code, the Rust compiler will complain. It will complain irrespective of the fact that both structs are similar except for their names. This is a good thing, but it might be a bit inconvenient. There are other ways you could achieve this, rather than using straight up casting. But what if you are working with library code or C code and you need to cast. We can achieve it with pointers. Here's the above function rewritten to use pointers.
+When you run this code, the Rust compiler will throw an error. This error will occur despite both structs having the same fields. This is a good thing, but it might be a bit inconvenient. There are other ways you could achieve this, rather than using straight-up casting. But what if you are working with library code or C code and need to cast? We can achieve it with pointers. Here's the above function rewritten to use pointers.
 
 ```rust 
 unsafe fn convert_to_user(mut x: Person) {
@@ -138,12 +138,12 @@ unsafe fn convert_to_user(mut x: Person) {
 
 It runs without any complaint. It isn't good Rust code, but sometimes you need something to just work.
 
-I won't advise anyone to use the above methods to solve problems, but it could happen that you need them. It happened that I needed them, and it was really worthwhile discovering and using them.
+I won't advise anyone to use the above methods to solve problems, but you might need them. It turned out that I needed them, and it was really worthwhile discovering and using them.
 
-Speaking of casting....
+Speaking of casting...
 
 #### 4. Adding extra fields to a struct
-Let's imagine you're using a todo library that works with only one task. When you add a task, it throws away the previous task
+Imagine you're using a todo library that works with only one task. When you add a task, it throws away the previous one
 
 ```rust
 #[derive(Clone)]
@@ -172,7 +172,7 @@ fn add_tasks(todo: *mut Todo) {
 }
 ```
 
-You'd use the above library like this
+You'd use the above library like this:
 
 ```rust
 fn create_todo() {
@@ -182,7 +182,7 @@ fn create_todo() {
 }
 ```
 
-It works well, but what if the one task at a time is too limited for you? What if you want to keep track of previous tasks? The library code is pretty fixed and expect a certain type of data. Is it possible to satisfy the library and satisfy your extra needs? It turns out that with a bit of casting trick, you could achieve both. Here's how?
+It works well, but what if the one task at a time is too limited for you? What if you want to keep track of previous tasks? The library function `add_tasks` cannot be changed and expects a specific input type. Is it possible to satisfy the library and satisfy your extra needs? It turns out both needs could be satisfied with a bit of casting trick. Here's how?
 
 ```rust
 #[repr(C)]
@@ -214,14 +214,14 @@ fn create_todo() {
 }
 ```
 
-The above code shows how we've casting to achieve both our needs. To pull this off, we needed a little help from the library code. Notice the [`repr`](https://doc.rust-lang.org/reference/type-layout.html#the-c-representation) attribute on both `Todo` and `CustomTodo`, that tells the Rust compiler to treat both like a C struct. The attribute ensures that the order of the fields isn't changed by the compiler. If the library hadn't added the attribute, a segmentation fault would have occured.
+The above code shows how using casting has helped achieve both needs. To pull this off, we needed a little help from the library code. Notice the [`repr`](https://doc.rust-lang.org/reference/type-layout.html#the-c-representation) attribute on both `Todo` and `CustomTodo` that tells the Rust compiler to treat both like a C struct. The attribute ensures that the compiler doesn't change the order of the struct's fields. A segmentation fault would have occurred if the library hadn't added the attribute to the `Todo` struct.
 
-This is struct manipulation is dangerous and shouldn't be used in normal Rust code. They are ways to achieve the above intent without meddling in unsafe territory. With this warning, it can come in handy especially when dealing with C code.
+This struct manipulation is dangerous and shouldn't be used thoughtlessly in your code. There are ways to achieve the above intent without meddling in unsafe territory. Dealing with C code or FFI might call for a need for it.
 
 
 ### Conclusion
-This lessons might not be special to you, but they are to me. Working on this project has made me a better programmer. 
+These lessons might look very ordinary, but they are special to me. Working on this project has made me a better programmer. 
 
-It's ironic that I started with praises about the simplicity of Postgres to then end with some clever tricks. I think the biggest lesson here is to strive for simplicity but you never know when a clever trick could come in handy. Want to know where I first found out about the struct adapting trick, [Postgres](https://github.com/postgres/postgres/blob/b1b13d2b524e64e3bf3538441366bdc8f6d3beda/src/backend/access/common/printtup.c#L72).
+Ironically, I started with praises about the simplicity of Postgres and then ended with some clever tricks. The biggest lesson here is to strive for simplicity, but you never know when a clever trick could come in handy. Where do you think I found the struct casting [trick](https://github.com/postgres/postgres/blob/b1b13d2b524e64e3bf3538441366bdc8f6d3beda/src/backend/access/common/printtup.c#L72)?
 
 
