@@ -9,7 +9,7 @@ This is a list of things I learned from building the [postgres-redis](https://gi
 
 Building this extension opened my eyes towards some of Postgres design details and Rust tricks. The things I learned might be normal and widely known, but I learned them on this project. Here's what I learned.
 
-### The Mundanity Of Excellence
+#### 1. The Mundanity Of Excellence
 Take a look at this piece of code
 
 ```c
@@ -79,7 +79,12 @@ Take a look at this piece of code
 ```
 Pretty normal, no clever tricks, just straightforward C code. This piece of code [taken](https://github.com/postgres/postgres/blob/b1b13d2b524e64e3bf3538441366bdc8f6d3beda/src/backend/executor/execMain.c#L1638) from Postgres is responsible for inserting/updating/deleting/selecting tuples (rows) from a table. It's pretty amazing how simple it is, and yet almost all select/update/delete/insert query you run against your Postgres table executes this code. It wasn't just this area, other parts of the Postgres codebase was like this. Simple pieces of code that combine together to create an excellent, reliable, sophisticated and amazing software. It reminds me of Da Vinci quote: Simplicity is the ultimate sophistication.
 
-### Rust Pointers
+#### 2. So Many Kinds Of Operators
+Take a look at [this](https://github.com/postgres/postgres/blob/3741f2a09d5205ec32bd8af5d1f397e08995932b/src/include/catalog/pg_operator.dat#L100). Postgres has lots of operators. Initially I thought the `=` sign would only have one constant. I could not have been more mistaken. There are Int4EqualOperator, TextEqualOperator, NameEqualTextOperator, BooleanEqualOperator, TIDEqualOperator, BpcharEqualOperator, ByteaEqualOperator, and this is just for the equal sign. Other operators have their own different kinds, with specific oids for each kind.
+
+It made our where clause handler a bit more complex but I can't complain. I'm curious about the reason for this though. Please if you know, I'd love to hear about it :-).
+
+#### 3. Rust Pointers
 Working on this project introduced me to using pointers in Rust lots of time. It turns out that in an unsafe context, Rust pointers behave so much like C. While the basic pointer stuff like referencing and dereferencing pointers are covered well by the Rust [book](https://doc.rust-lang.org/book/ch19-01-unsafe-rust.html#dereferencing-a-raw-pointer), there are two things I learnt about Rust pointers when building this extension. Here they are:
 
 * Pointer arithmetic: Imagine you have a list of objects and you have the pointer to the first item, how do you get to the nth item. In C, you'd probably do this:
@@ -137,7 +142,7 @@ I won't advise anyone to use the above methods to solve problems, but it could h
 
 Speaking of casting....
 
-### Adding extra fields to a struct
+#### 4. Adding extra fields to a struct
 Let's imagine you're using a todo library that works with only one task. When you add a task, it throws away the previous task
 
 ```rust
@@ -212,11 +217,6 @@ fn create_todo() {
 The above code shows how we've casting to achieve both our needs. To pull this off, we needed a little help from the library code. Notice the [`repr`](https://doc.rust-lang.org/reference/type-layout.html#the-c-representation) attribute on both `Todo` and `CustomTodo`, that tells the Rust compiler to treat both like a C struct. The attribute ensures that the order of the fields isn't changed by the compiler. If the library hadn't added the attribute, a segmentation fault would have occured.
 
 This is struct manipulation is dangerous and shouldn't be used in normal Rust code. They are ways to achieve the above intent without meddling in unsafe territory. With this warning, it can come in handy especially when dealing with C code.
-
-### So Many Kinds Of Operators
-Take a look at [this](https://github.com/postgres/postgres/blob/3741f2a09d5205ec32bd8af5d1f397e08995932b/src/include/catalog/pg_operator.dat#L100). Postgres has lots of operators. Initially I thought the `=` sign would only have one constant. I could not have been more mistaken. There are Int4EqualOperator, TextEqualOperator, NameEqualTextOperator, BooleanEqualOperator, TIDEqualOperator, BpcharEqualOperator, ByteaEqualOperator, and this is just for the equal sign. Other operators have their own different kinds, with specific oids for each kind.
-
-It made our where clause handler a bit more complex but I can't complain. I'm curious about the reason for this though. Please if you know, I'd love to hear about it :-).
 
 
 ### Conclusion
