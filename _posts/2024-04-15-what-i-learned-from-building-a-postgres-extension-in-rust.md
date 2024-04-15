@@ -224,4 +224,4 @@ These lessons might look very ordinary, but they are special to me. Working on t
 
 Ironically, I started with praises about the simplicity of Postgres and then ended with some clever tricks. The biggest lesson here is to strive for simplicity, but you never know when a clever trick could come in handy. Where do you think I found the struct casting [trick](https://github.com/postgres/postgres/blob/b1b13d2b524e64e3bf3538441366bdc8f6d3beda/src/backend/access/common/printtup.c#L72)?
 
-
+The code source is available [here](https://github.com/systemEng-Learning/postgres-redis)
