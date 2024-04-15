@@ -1,11 +1,11 @@
 ---
 layout: post
 title: "What I Learned From Building A Postgres Extension In Rust"
-date: 2024-04-11
+date: 2024-04-15
 categories: database
 ---
 
-This is a list of things I learned from building the [Postgres-redis](https://github.com/systemEng-Learning/postgres-redis) extension for Postgres in Rust. A retrospective design and implementation article, this is not. I wrote that up [here]().
+This is a list of things I learned from building the [Postgres-redis](https://github.com/systemEng-Learning/postgres-redis) extension for Postgres in Rust. A retrospective design and implementation article, this is not. It is written [here](https://systemeng-learning.github.io/database/postgres-redis/).
 
 Building this extension opened my eyes to some of Postgres's design details and Rust tricks. The things I learned might be ordinary and widely known, but I learned about them on this project. Here's what I learned.
 
