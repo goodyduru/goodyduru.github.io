@@ -178,7 +178,7 @@ iptables -A FORWARD -i example -o eth0 -j ACCEPT
 iptables -A FORWARD -i eth0 -o example -j ACCEPT
 ```
 
-It was really cool to play around with the tool.
+It was really cool to play around with the tool<sup><a href="#footer-note-3">[3]</a></sup>.
 
 #### 5. Wireguard as VPN
 Building a very simple vpn tool really gave me a deeper understanding of how Wireguard [works](https://www.wireguard.com/#conceptual-overview). Even more, I got to really understand how to make it work as a vpn. All you have to do is to set the AllowedIPs to _0.0.0.0/0, ::0_ under the [Peer] section of the client after creating the relevant wireguard interface. Your client config could be like this assuming your client wireguard ip address is 10.0.0.2 and server is 10.0.0.1 and you've setup your wireguard on both machines.
@@ -224,3 +224,7 @@ I wrote a very simple library for tunnelling [here](https://github.com/systemEng
 ***
 
 <div id="footer-note-2">[2] You can see the number of routers a packet goes through between your computer and an endpoint using traceroute. </div>
+
+***
+
+<div id="footer-note-3">[3] You can read more about iptables nat config <a href="https://billauer.co.il/ipmasq-html.html">here</a>. </div>
