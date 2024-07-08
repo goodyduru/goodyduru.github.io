@@ -223,7 +223,7 @@ This was my first time working with networking in Rust, and it was pretty much s
 
 I wrote a very simple library for tunneling [here](https://github.com/systemEng-Learning/simple-vpn/tree/main/tunnel), which I subsequently used for our [simple VPN project](https://github.com/systemEng-Learning/simple-vpn/tree/main/tunnel-cli) and the [localhost tunneling project](https://github.com/systemEng-Learning/simple-vpn/tree/main/tunnel-local).
 
-You can read the project log [here](https://systemeng-learning.github.io/networking/network-tunnel/).
+You can read the project's log [here](https://systemeng-learning.github.io/networking/network-tunnel/).
 ***
 
 <div id="footer-note-1">[1] "Interface" in this article, is usually referred to as "device" in several similar virtual networking documents. I call them interface, so I can refer to the applications directly reading and writing to them as devices.  </div>
