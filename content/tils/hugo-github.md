@@ -1,6 +1,6 @@
 +++
 date = '2024-11-26T14:36:25+01:00'
-draft = true
+draft = false
 title = 'Hugo Github'
 +++
 I finally deployed this Hugo based site on Github. It was surprisingly easy. All I had to do was follow the [instruction](https://gohugo.io/hosting-and-deployment/hosting-on-github/) on the Hugo website. 
