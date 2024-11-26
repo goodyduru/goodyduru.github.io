@@ -1,0 +1,26 @@
+{{ define "main" }}
+    <div class="combined-title-pagination">
+      <h1>{{ upper .Title }}</h1>
+      {{ if ne .Paginator.PageNumber 1 }}
+          <h3 class="current-page">Page {{.Paginator.PageNumber}}</h3>
+      {{ end }}
+    </div>
+    <hr>
+    {{ range (.Paginator 50).Pages }}
+    {{ if not .Params.hidden }}
+    <article class="post-list">
+        <div class="title-group">
+            <div class="title">
+                <h1>{{ .Title }}</h1>
+            </div>
+            <div class="date"><h5>{{ .Params.date.Format "Jan 02, 2006" }}</h5></div>
+        </div class="title-group">
+
+        <div class="content">
+            {{ .Content | safeHTML }}
+        </div>
+    </article>
+    {{ end }}
+    {{ end }}
+    {{- partial "pagination.html" . -}}
+{{ end }}

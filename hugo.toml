@@ -1,4 +1,4 @@
-baseURL = 'https://goodyduru.github.io/'
+baseURL = 'https://goodyduru.com/'
 languageCode = 'en-us'
 title = 'Goodness Duru'
 theme = 'rocinante'
@@ -45,3 +45,13 @@ Email me if you'd like to _chat_ or work together.
   name = "Github"
   href = "https://github.com/goodyduru"
   new_tab = true
+  [[params.links.link]]
+  name = "LinkedIn"
+  href = "https://www.linkedin.com/in/goodyduru/"
+  new_tab = true
+
+[outputs]
+  home = ['html', 'rss']
+  section = ['html', 'rss']
+  taxonomy = ['html']
+  term = ['html']
