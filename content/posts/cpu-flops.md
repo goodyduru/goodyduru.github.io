@@ -1,9 +1,9 @@
 +++
 date = '2024-12-11T15:52:25+01:00'
-title = 'CPU FLOPs'
+title = 'How I Calculate An x86 CPU FLOPs'
 draft = false
 +++
-My friend and I have been taking some performance engineering courses. One thing we've come to realize is how important calculating the maximum Floating-point Operations per second (FLOPs) of a CPU is. It turns out this is a little trickier than it looks. 
+My friend and I have been taking some performance engineering courses. One thing we've come to realize is how important calculating the maximum [Floating-point Operations per second (FLOPs)](https://en.wikipedia.org/wiki/Floating_point_operations_per_second) of a CPU is. It turns out this is a little trickier than it looks. 
 
 This is a formula I use to calculate this value. The formula is `number of cores * peak cpu speed * (max SIMD register size/32) * (fma throughput * 2)`. Let me break it down.
 * Number of cores: The amount of cores in its CPU.
