@@ -10,6 +10,9 @@ I love RSS! In other to understand it better, I decided to build a client. This 
 ### [An Icon Font Subsetter](https://iconsubset.goodyduru.com/)
 In the course of improving Offline RSS perf, I wanted my font awesome font file to include only the icons I used. There were no browser tools for that, and so I built this. It works entirely in the browser. It uses the excellent [fonttools](https://github.com/fonttools/fonttools) written in Python. This gave me an opportunity to explore Web Assembly using [Pyodide](https://pyodide.org) and Web Workers. You can find the source code [here](https://github.com/goodyduru/font-subset).
 
+### [Chart Race Video](https://chartrace.goodyduru.com/)
+I find bar chart races [fascinating](https://observablehq.com/@d3/bar-chart-race-explained). I wanted to build a tool that allows people to run one and share it as a video by just uploading a csv file. This is it. It's still buggy and there are lots of things to add. Working on this tool gave me an opportunity to learn and understand HTML Canvas. Check out the [source code](https://github.com/goodyduru/chartrace2video) on Github.
+
 ### [Nitrows](https://github.com/goodyduru/nitrows)
 I have always found Websockets to be a fascinating and yet obsure communication protocol. What better way to understand it than building one. In addition, I wanted to apply some of the lessons I learnt from a [Performance Engineering class](https://youtube.com/playlist?list=PLUl4u3cNGP63VIBQVWguXxZZi0566y7Wf&si=OBikOBBBstQ_GpdO) I took. I worked on it till it was able to pass all the tests in the [Autobahn Test Suite](https://github.com/crossbario/autobahn-testsuite). I built this one in C. Check out the [source code](https://github.com/goodyduru/nitrows).
 
